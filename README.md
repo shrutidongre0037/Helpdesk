@@ -24,13 +24,14 @@ The system utilizes **Better Auth** to provide a secure and modern authenticatio
 - **Backend Core**: Configured with the Better Auth Prisma adapter (`backend/src/auth.ts`) to securely store users and sessions in PostgreSQL.
 - **Frontend Client**: Utilizes the Better Auth React client (`frontend/src/lib/auth.ts`) for seamless hook-based state management (e.g., `useSession`, `signIn`, `signOut`).
 - **Security**: Uses HTTP-only cookies to persist sessions. Cross-Origin Resource Sharing (CORS) is strictly configured on the Express server (`credentials: true`) to allow the Vite frontend to securely exchange session cookies.
-- **Protected Routes**: Frontend routing enforces authentication checks (redirecting to `/login` if unauthenticated), leveraging Shadcn UI components for sleek loading states (`<Skeleton>`) and error handling.
-- **Default Access**: An initial admin user is generated using the backend Prisma seed script (`bun run seed`).
+- **Protected Routes**: Frontend routing enforces authentication checks (redirecting to `/login` if unauthenticated), leveraging Shadcn UI components for sleek loading states (`<Skeleton>`) and error handling. Specific routes like `/users` implement Role-Based Access Control (RBAC) restricted to `ADMIN` users.
 
 ## 8-Phase Implementation Roadmap
 1. **Project Setup**: Scaffolding, DB initialization, Prisma schema, Admin seed script. *(Completed)*
 2. **Authentication**: Better Auth backend integration, Login UI with Shadcn, session management, frontend route protection. *(Completed)*
-3. **User Management**: Admin CRUD for agents, role-based access. *(Pending)*
+3. **User Management**: Admin CRUD for agents, role-based access. *(In Progress)*
+   - Implemented RBAC enforcing `ADMIN` requirements for user management views.
+   - Created the `/users` dashboard page and admin-only navigation links.
 4. **Ticket CRUD**: Core ticket operations, list/detail pages with filtering.
 5. **AI Features**: Gemini API integration for classification, summaries, suggested replies, knowledge base.
 6. **Email Integration**: Inbound webhook (SendGrid/Mailgun) to create tickets, outbound replies, threading.

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useSession, signOut } from '../lib/auth';
-import { LogOut, User, Settings, LayoutDashboard } from 'lucide-react';
+import { LogOut, User, Settings, LayoutDashboard, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -66,6 +66,14 @@ export default function Navbar() {
                       <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
+                  {session && (session.user as any).role === 'ADMIN' && (
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to="/users" className="flex items-center w-full">
+                        <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                        <span>Manage Users</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem className="cursor-pointer">
                     <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
                     <span>Settings</span>
