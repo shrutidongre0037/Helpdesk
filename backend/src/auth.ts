@@ -4,29 +4,50 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./db";
 
 export const auth = betterAuth({
-    hooks: {
-        before: createAuthMiddleware(async (ctx) => {
-            if (ctx.path.startsWith("/sign-up")) {
-                throw new APIError("BAD_REQUEST", {
-                    message: "Sign-up is disabled",
-                });
-            }
-        }),
-    },
-    database: prismaAdapter(prisma, {
-        provider: "postgresql", // or "mysql", "sqlite"
+  hooks: {
+    // Exact path match to prevent sign-up; startsWith is too broad
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path === '/sign-up/email' || ctx.path === '/sign-up/social') {
+        throw new APIError("FORBIDDEN", {
+          message: "Registration is not open. Contact your administrator.",
+        });
+      }
     }),
-    emailAndPassword: {
-        enabled: true,
+  },
+  database: prismaAdapter(prisma, { provider: "postgresql" }),
+  emailAndPassword: {
+    enabled: true,
+    minPasswordLength: 8, // stronger minimum
+  },
+  // Fix L1: rate limiting on auth endpoints
+  rateLimit: {
+    enabled: true,
+    window: 60,  // seconds
+    max: 10,     // requests per window per IP
+  },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "AGENT",
+      },
     },
+  },
+  // Fix M2: enforce role server-side on creation — never trust client input
+  databaseHooks: {
     user: {
-        additionalFields: {
-            role: {
-                type: "string",
-                required: false,
-                defaultValue: "AGENT"
-            }
-        }
+      create: {
+        before: async (user) => {
+          return { data: { ...user, role: 'AGENT' } };
+        },
+      },
     },
-    trustedOrigins: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : ["http://localhost:5173"]
+  },
+  trustedOrigins: process.env.FRONTEND_URL
+    ? [process.env.FRONTEND_URL]
+    : ["http://localhost:5173"],
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === 'production',
+  },
 });
