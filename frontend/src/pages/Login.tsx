@@ -2,39 +2,58 @@ import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { signIn, useSession } from '../lib/auth';
 import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [globalError, setGlobalError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { data: session, isPending } = useSession();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
   // Redirect if already logged in
   if (session) {
     return <Navigate to="/" replace />;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  const onSubmit = async (values: LoginFormValues) => {
+    setGlobalError(null);
     setIsLoading(true);
 
     try {
       const { data, error } = await signIn.email({
-        email,
-        password,
+        email: values.email,
+        password: values.password,
       });
 
       if (error) {
-        setError(error.message || 'Failed to sign in. Please check your credentials.');
+        setGlobalError(error.message || 'Failed to sign in. Please check your credentials.');
       } else {
         // Successful login
         navigate('/');
       }
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred. Please try again.');
+      setGlobalError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -65,12 +84,12 @@ export default function Login() {
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+          {globalError && (
             <div className="rounded-xl bg-red-50/80 backdrop-blur-sm p-4 border border-red-200 shadow-sm">
               <div className="flex items-center">
                 <AlertCircle className="h-5 w-5 text-red-500 mr-3 flex-shrink-0" />
-                <p className="text-sm text-red-700">{error}</p>
+                <p className="text-sm text-red-700">{globalError}</p>
               </div>
             </div>
           )}
@@ -82,20 +101,20 @@ export default function Login() {
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                  <Mail className={`h-5 w-5 ${errors.email ? 'text-red-400' : 'text-gray-400'} group-focus-within:${errors.email ? 'text-red-500' : 'text-blue-500'} transition-colors`} />
                 </div>
                 <input
                   id="email"
-                  name="email"
                   type="email"
                   autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm bg-white/80 backdrop-blur-sm"
+                  {...register('email')}
+                  className={`appearance-none relative block w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-300 placeholder-red-300 text-red-900 focus:ring-red-500' : 'border-gray-300 placeholder-gray-400 text-gray-900 focus:ring-blue-500'} rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all shadow-sm bg-white/80 backdrop-blur-sm`}
                   placeholder="admin@example.com"
                 />
               </div>
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              )}
             </div>
 
             <div>
@@ -104,20 +123,20 @@ export default function Login() {
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                  <Lock className={`h-5 w-5 ${errors.password ? 'text-red-400' : 'text-gray-400'} group-focus-within:${errors.password ? 'text-red-500' : 'text-blue-500'} transition-colors`} />
                 </div>
                 <input
                   id="password"
-                  name="password"
                   type="password"
                   autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm bg-white/80 backdrop-blur-sm"
+                  {...register('password')}
+                  className={`appearance-none relative block w-full pl-10 pr-3 py-3 border ${errors.password ? 'border-red-300 placeholder-red-300 text-red-900 focus:ring-red-500' : 'border-gray-300 placeholder-gray-400 text-gray-900 focus:ring-blue-500'} rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all shadow-sm bg-white/80 backdrop-blur-sm`}
                   placeholder="••••••••"
                 />
               </div>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+              )}
             </div>
           </div>
 
