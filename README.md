@@ -5,26 +5,36 @@
 
 ## Core Tech Stack
 - **Runtime & Package Manager**: Bun
-- **Frontend**: React (Vite) + TypeScript + Tailwind CSS (v4) + React Router
+- **Frontend**: React (Vite) + TypeScript + Tailwind CSS (v4) + Shadcn UI (Radix) + React Router
 - **Backend**: Express + TypeScript (Running on Bun)
 - **Database**: PostgreSQL (with `pgvector` for AI embeddings)
 - **ORM**: Prisma
+- **Auth**: Better Auth
 - **Background Queue**: Redis + BullMQ
 - **AI Intelligence**: Google Gemini API
 
 ## Architecture Overview
 - **Structure**: Monorepo with `frontend/` and `backend/` directories.
-- **Authentication**: Database-backed session authentication using HTTP-only cookies.
+- **Authentication**: Database-backed session authentication using Better Auth with HTTP-only cookies and cross-origin CORS support.
 - **Environment**: Docker containerization used for local dependencies (PostgreSQL + Redis).
+- **UI Design System**: Shadcn UI combined with custom glassmorphism and modern styling for a premium aesthetic.
+
+## Authentication Details
+The system utilizes **Better Auth** to provide a secure and modern authentication flow:
+- **Backend Core**: Configured with the Better Auth Prisma adapter (`backend/src/auth.ts`) to securely store users and sessions in PostgreSQL.
+- **Frontend Client**: Utilizes the Better Auth React client (`frontend/src/lib/auth.ts`) for seamless hook-based state management (e.g., `useSession`, `signIn`, `signOut`).
+- **Security**: Uses HTTP-only cookies to persist sessions. Cross-Origin Resource Sharing (CORS) is strictly configured on the Express server (`credentials: true`) to allow the Vite frontend to securely exchange session cookies.
+- **Protected Routes**: Frontend routing enforces authentication checks (redirecting to `/login` if unauthenticated), leveraging Shadcn UI components for sleek loading states (`<Skeleton>`) and error handling.
+- **Default Access**: An initial admin user is generated using the backend Prisma seed script (`bun run seed`).
 
 ## 8-Phase Implementation Roadmap
 1. **Project Setup**: Scaffolding, DB initialization, Prisma schema, Admin seed script. *(Completed)*
-2. **Authentication**: Login UI, session management, route protection. *(Pending)*
-3. **User Management**: Admin CRUD for agents, role-based access.
+2. **Authentication**: Better Auth backend integration, Login UI with Shadcn, session management, frontend route protection. *(Completed)*
+3. **User Management**: Admin CRUD for agents, role-based access. *(Pending)*
 4. **Ticket CRUD**: Core ticket operations, list/detail pages with filtering.
 5. **AI Features**: Gemini API integration for classification, summaries, suggested replies, knowledge base.
 6. **Email Integration**: Inbound webhook (SendGrid/Mailgun) to create tickets, outbound replies, threading.
-7. **Dashboard**: Stats overview, category breakdown, quick filters.
+7. **Dashboard**: Stats overview, category breakdown, quick filters. *(Basic UI scaffolded)*
 8. **Polish & Deployment**: Validation, error handling, Docker prep.
 
 ## How to Run Locally
@@ -33,3 +43,4 @@ Ensure you have Docker running and Bun installed.
 1. **Start Databases**: `docker compose up -d`
 2. **Start Backend**: `cd backend && bun run dev` (Available on `http://localhost:3000`)
 3. **Start Frontend**: `cd frontend && bun run dev` (Available on `http://localhost:5173`)
+
