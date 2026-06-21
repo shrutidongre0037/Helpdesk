@@ -27,5 +27,6 @@ export const auth = betterAuth({
                 defaultValue: "AGENT"
             }
         }
-    }
+    },
+    trustedOrigins: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : ["http://localhost:5173"]
 });
