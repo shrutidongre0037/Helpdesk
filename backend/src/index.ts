@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './auth';
 import prisma from './db';
@@ -14,6 +15,32 @@ const port = process.env.PORT || 3000;
 
 // Security headers
 app.use(helmet());
+
+// Rate limiting — production only (skipped in dev/test to avoid blocking Playwright)
+if (process.env.NODE_ENV === 'production') {
+  // Global limiter: 100 requests per 15 minutes per IP
+  const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,  // Return rate limit info in RateLimit-* headers
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later.' },
+  });
+
+  // Strict limiter for auth routes: 10 requests per 15 minutes per IP
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many authentication attempts, please try again later.' },
+  });
+
+  app.use(globalLimiter);
+  app.use('/api/auth', authLimiter);
+
+  console.log('🛡️  Rate limiting enabled (production mode)');
+}
 
 // CORS — explicit allowlist, not wildcard
 app.use(cors({

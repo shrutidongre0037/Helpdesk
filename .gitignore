@@ -1,0 +1,42 @@
+# ── Dependencies ─────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ── Environment variables (NEVER commit secrets) ─────────────
+.env
+.env.local
+.env.test
+.env.*.local
+backend/.env
+backend/.env.test
+frontend/.env
+frontend/.env.local
+
+# ── Build outputs ─────────────────────────────────────────────
+dist/
+build/
+out/
+.next/
+
+# ── Prisma generated client ───────────────────────────────────
+backend/src/generated/
+
+# ── Playwright ────────────────────────────────────────────────
+e2e/test-results/
+e2e/playwright-report/
+e2e/.playwright/
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+bun-debug.log*
+
+# ── OS / editor junk ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ── Bun ───────────────────────────────────────────────────────
+*.bun

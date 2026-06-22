@@ -66,7 +66,7 @@ export default function Navbar() {
                       <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
-                  {session && (session.user as any).role === 'ADMIN' && (
+                  {session && session.user.role === 'ADMIN' && (
                     <DropdownMenuItem asChild className="cursor-pointer">
                       <Link to="/users" className="flex items-center w-full">
                         <Users className="mr-2 h-4 w-4 text-muted-foreground" />

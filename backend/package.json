@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:test:migrate": "DATABASE_URL=postgresql://postgres:password@localhost:5434/helpdesk_test?schema=public npx prisma migrate deploy",
+    "db:test:seed": "DATABASE_URL=postgresql://postgres:password@localhost:5434/helpdesk_test?schema=public ADMIN_EMAIL=admin@test.local ADMIN_PASSWORD=Test1234! bun prisma/seed.test.ts",
+    "db:test:reset": "DATABASE_URL=postgresql://postgres:password@localhost:5434/helpdesk_test?schema=public npx prisma migrate reset --force"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +26,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
     "helmet": "^8.2.0",
     "ioredis": "^5.11.1",
     "jsonwebtoken": "^9.0.3",
@@ -33,6 +37,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/express-rate-limit": "^6.0.2",
     "@types/helmet": "^4.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.0.0",

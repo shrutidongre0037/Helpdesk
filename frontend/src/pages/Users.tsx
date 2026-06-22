@@ -13,9 +13,8 @@ export default function Users() {
     );
   }
 
-  // Check if user is logged in and is an admin.
-  // Using 'as any' here if the type definition hasn't been updated with 'role'
-  if (!session || (session.user as any).role !== 'ADMIN') {
+  // Role is properly typed via createAuthClient<typeof auth> in lib/auth.ts
+  if (!session || session.user.role !== 'ADMIN') {
     return <Navigate to="/" replace />;
   }
 

@@ -21,6 +21,10 @@ export default function Home() {
     );
   }
 
+  if (!session) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -28,27 +32,18 @@ export default function Home() {
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
             Welcome to Helpdesk AI
           </h1>
-          {session ? (
-            <p className="text-lg text-muted-foreground mt-1">
-              Hello, <span className="font-semibold text-foreground">{session.user.name}</span>! Here's an overview of your workspace.
-            </p>
-          ) : (
-            <p className="text-lg text-muted-foreground mt-1">
-              Please log in to access your dashboard.
-            </p>
-          )}
+          <p className="text-lg text-muted-foreground mt-1">
+            Hello, <span className="font-semibold text-foreground">{session.user.name}</span>! Here's an overview of your workspace.
+          </p>
         </div>
-        {session && (
-          <Button className="bg-gradient-to-r from-primary to-indigo-600 hover:opacity-90 shadow-md">
-            <Plus className="mr-2 h-4 w-4" /> New Ticket
-          </Button>
-        )}
+        <Button className="bg-gradient-to-r from-primary to-indigo-600 hover:opacity-90 shadow-md">
+          <Plus className="mr-2 h-4 w-4" /> New Ticket
+        </Button>
       </div>
 
-      {session && (
-        <>
-          {/* Dashboard Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <>
+        {/* Dashboard Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="hover:shadow-md transition-shadow border-border/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-sm">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Tickets</CardTitle>
@@ -119,7 +114,6 @@ export default function Home() {
             </CardContent>
           </Card>
         </>
-      )}
     </div>
   );
 }

@@ -1,0 +1,4 @@
+# E2E tests go here
+
+# Playwright will auto-discover test files matching *.spec.ts
+# Example: login.spec.ts, tickets.spec.ts
