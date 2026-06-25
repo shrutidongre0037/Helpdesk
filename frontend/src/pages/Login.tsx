@@ -89,7 +89,7 @@ export default function Login() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
               {globalError && (
                 <Alert variant="destructive" className="bg-red-50/50 dark:bg-red-950/50 backdrop-blur-sm">
                   <AlertCircle className="h-4 w-4" />

@@ -62,6 +62,7 @@ export default defineConfig({
       timeout: 30_000,
       env: {
         PORT: "3001",
+        NODE_ENV: "test",
         DATABASE_URL:
           "postgresql://postgres:password@localhost:5434/helpdesk_test?schema=public",
         BETTER_AUTH_SECRET: "test-only-secret-never-used-in-production-32chars",

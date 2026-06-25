@@ -2,13 +2,16 @@
  * seed.test.ts — Minimal test DB seed
  *
  * Directly inserts a known admin user via Prisma (no backend server required).
- * Password is hashed using bcrypt so Better Auth session validation works correctly.
+ *
+ * IMPORTANT: Password MUST be hashed with Better Auth's own hashPassword utility
+ * (scrypt-based, format: "salt:hex") — NOT bcrypt. Using bcrypt produces a hash
+ * that Better Auth's verifyPassword cannot parse, causing "Invalid password hash".
  *
  * Run via: bun prisma/seed.test.ts (with DATABASE_URL pointing to helpdesk_test)
  */
 
 import { PrismaClient } from "../src/generated/prisma";
-import bcrypt from "bcrypt";
+import { hashPassword } from "@better-auth/utils/password";
 import { randomUUID } from "crypto";
 
 const prisma = new PrismaClient();
@@ -34,7 +37,8 @@ async function main() {
 
   const userId = randomUUID();
   const accountId = randomUUID();
-  const hashedPassword = await bcrypt.hash(TEST_ADMIN.password, 12);
+  // Use Better Auth's scrypt hasher — produces "salt:hex" format that verifyPassword expects
+  const hashedPassword = await hashPassword(TEST_ADMIN.password);
   const now = new Date();
 
   // Insert User row

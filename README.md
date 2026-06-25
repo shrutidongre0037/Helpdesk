@@ -39,50 +39,33 @@ The system utilizes **Better Auth** to provide a secure and modern authenticatio
 ## E2E Testing (Playwright)
 Playwright is configured in the standalone `e2e/` directory with a fully isolated test database.
 
-### Test Infrastructure
-| Component | Dev | Test |
-|---|---|---|
-| **Backend port** | `3000` | `3001` |
-| **Frontend port** | `5173` | `5174` |
-| **DB container** | `helpdesk_postgres` | `helpdesk_postgres_test` |
-| **DB port** | `5432` | `5434` |
-| **DB name** | `helpdesk` | `helpdesk_test` |
+### Writing Tests with the AI Agent
 
-### Key Files
-| File | Purpose |
-|---|---|
-| `e2e/playwright.config.ts` | Main config — webServer, globalSetup/Teardown, Chromium project |
-| `e2e/global-setup.ts` | Runs before all tests: verifies DB → applies migrations → seeds test user |
-| `e2e/global-teardown.ts` | Runs after all tests: truncates all tables (preserves schema) |
-| `backend/.env.test` | Test-specific env vars — points to `helpdesk_test` DB on port `5434` |
-| `backend/prisma/seed.test.ts` | Idempotent seed: inserts `admin@test.local` (ADMIN role) directly via Prisma |
-| `backend/package.json` | Adds `db:test:migrate`, `db:test:seed`, `db:test:reset` scripts |
+This project has a dedicated **`playwright-e2e` agent skill** (`.agents/skills/playwright-e2e/SKILL.md`) that knows the full test setup — ports, selectors, seeded credentials, DB lifecycle, and idiomatic patterns.
 
-### Test Credentials
-- **Email**: `admin@test.local`
-- **Password**: `Test1234!`
+**To generate or add a test, just ask the AI:**
+> *"write e2e tests for the login page"*
+> *"add a Playwright test for the /users admin redirect"*
+> *"write tests covering logout behaviour"*
 
-### Running E2E Tests
+The agent will automatically:
+- Place test files in `e2e/tests/*.spec.ts`
+- Use the correct `baseURL`-relative paths and seeded credentials
+- Follow the project's test conventions (no `waitForTimeout`, proper `describe` blocks, etc.)
+
+> Full skill reference: `.agents/skills/playwright-e2e/SKILL.md`
+
+### Quick Start
+
 ```bash
-# 1. Ensure test DB container is running
+# 1. Start the test DB container
 docker compose up postgres_test -d
 
-# 2. Run all tests (headless)
+# 2. Run all tests
 cd e2e && npm test
 
-# 3. Run in UI mode (interactive)
+# 3. Interactive UI mode
 cd e2e && npm run test:ui
-
-# 4. Run headed (see browser)
-cd e2e && npm run test:headed
-```
-
-### Resetting the Test DB manually
-```bash
-cd backend
-npm run db:test:migrate   # Apply pending migrations
-npm run db:test:seed      # Re-seed test admin user
-npm run db:test:reset     # Full reset (drop + re-migrate + seed)
 ```
 
 ## How to Run Locally

@@ -19,9 +19,9 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8, // stronger minimum
   },
-  // Fix L1: rate limiting on auth endpoints
+  // Rate limiting: disabled in test mode so the e2e suite doesn't hit the 10-req/60s cap
   rateLimit: {
-    enabled: true,
+    enabled: process.env.NODE_ENV !== 'test',
     window: 60,  // seconds
     max: 10,     // requests per window per IP
   },
@@ -46,7 +46,7 @@ export const auth = betterAuth({
   },
   trustedOrigins: process.env.FRONTEND_URL
     ? [process.env.FRONTEND_URL]
-    : ["http://localhost:5173"],
+    : ["http://localhost:5173", "http://localhost:5174"],
   advanced: {
     useSecureCookies: process.env.NODE_ENV === 'production',
   },
