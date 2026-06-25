@@ -1,7 +1,8 @@
 import { useSession } from '../lib/auth';
 import { Navigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 import { ShieldCheck, User as UserIcon, Calendar, Mail } from 'lucide-react';
 
 interface User {
@@ -14,39 +15,19 @@ interface User {
 
 export default function Users() {
   const { data: session, isPending: authPending } = useSession();
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: users = [], isLoading: loading, error: queryError } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      const response = await axios.get(`${backendUrl}/api/users`, {
+        withCredentials: true,
+      });
+      return response.data as User[];
+    },
+    enabled: !!session && session.user.role === 'ADMIN',
+  });
 
-  useEffect(() => {
-    if (!session || session.user.role !== 'ADMIN') return;
-
-    const fetchUsers = async () => {
-      try {
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-        const response = await fetch(`${backendUrl}/api/users`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch users');
-        }
-
-        const data = await response.json();
-        setUsers(data);
-      } catch (err: any) {
-        setError(err.message || 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, [session]);
+  const error = queryError ? (queryError as any).response?.data?.error || queryError.message || 'An error occurred' : null;
 
   if (authPending) {
     return (

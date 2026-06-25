@@ -6,6 +6,7 @@
 ## Core Tech Stack
 - **Runtime & Package Manager**: Bun
 - **Frontend**: React (Vite) + TypeScript + Tailwind CSS (v4) + Shadcn UI (Radix) + React Router
+- **Data Fetching (Frontend)**: Axios + TanStack React Query
 - **Backend**: Express + TypeScript (Running on Bun)
 - **Database**: PostgreSQL (with `pgvector` for AI embeddings)
 - **ORM**: Prisma
@@ -17,6 +18,7 @@
 ## Architecture Overview
 - **Structure**: Monorepo with `frontend/`, `backend/`, and `e2e/` directories.
 - **Authentication**: Database-backed session authentication using Better Auth with HTTP-only cookies and cross-origin CORS support.
+- **Data Fetching**: The frontend uses `axios` for HTTP requests (configured with `withCredentials: true` for auth cookies) and `@tanstack/react-query` for query caching, state management, and loading states.
 - **Environment**: Docker containerization used for local dependencies (PostgreSQL dev + PostgreSQL test + Redis).
 - **UI Design System**: Shadcn UI combined with custom glassmorphism and modern styling for a premium aesthetic.
 - **Security**: Rate limiting enabled in production only (global + auth-specific limits via `express-rate-limit`).
