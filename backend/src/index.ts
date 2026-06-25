@@ -72,6 +72,33 @@ app.get('/api/protected', requireAuth, (req, res) => {
   res.json({ message: 'Protected route OK', user: req.user });
 });
 
+app.get('/api/users', requireAuth, async (req, res) => {
+  try {
+    if (req.user?.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Forbidden: Admins only' });
+      return;
+    }
+
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    res.json(users);
+  } catch (error: any) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
