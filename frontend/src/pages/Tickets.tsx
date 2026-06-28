@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from '../lib/auth';
 import { Navigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -21,7 +22,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import type { SortingState } from '@tanstack/react-table';
+import type { SortingState, PaginationState } from '@tanstack/react-table';
 
 interface Ticket {
   id: number;
@@ -120,6 +121,10 @@ export default function Tickets() {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -128,8 +133,8 @@ export default function Tickets() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const { data: tickets = [], isLoading: loading, error: queryError } = useQuery({
-    queryKey: ['tickets', sorting, statusFilter, searchQuery],
+  const { data: responseData, isLoading: loading, error: queryError } = useQuery({
+    queryKey: ['tickets', sorting, statusFilter, searchQuery, pagination],
     queryFn: async () => {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const sort = sorting.length > 0 ? sorting[0].id : 'createdAt';
@@ -137,22 +142,35 @@ export default function Tickets() {
       
       const response = await axios.get(`${backendUrl}/api/tickets`, {
         withCredentials: true,
-        params: { sort, order, status: statusFilter, search: searchQuery },
+        params: { 
+          sort, 
+          order, 
+          status: statusFilter, 
+          search: searchQuery,
+          page: pagination.pageIndex + 1,
+          limit: pagination.pageSize
+        },
       });
-      return response.data as Ticket[];
+      return response.data as { data: Ticket[]; meta: any };
     },
     enabled: !!session,
   });
+
+  const tickets = responseData?.data || [];
 
   const table = useReactTable({
     data: tickets,
     columns,
     state: {
       sorting,
+      pagination,
     },
     onSortingChange: setSorting,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     manualSorting: true,
+    manualPagination: true,
+    pageCount: responseData?.meta?.totalPages ?? -1,
   });
 
   const error = queryError ? (queryError as any).response?.data?.error || queryError.message || 'An error occurred' : null;
@@ -237,71 +255,118 @@ export default function Tickets() {
             <p>Error: {error}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
-                {table.getHeaderGroups().map(headerGroup => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map(header => {
-                      return (
-                        <th key={header.id} scope="col" className="px-6 py-4 font-semibold">
-                          {header.isPlaceholder ? null : (
-                            <div
-                              {...{
-                                className: header.column.getCanSort()
-                                  ? 'group cursor-pointer select-none flex items-center gap-1 hover:text-foreground transition-colors'
-                                  : 'flex items-center gap-1',
-                                onClick: header.column.getToggleSortingHandler(),
-                              }}
-                            >
-                              {flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                              {{
-                                asc: <ArrowUp className="w-3 h-3" />,
-                                desc: <ArrowDown className="w-3 h-3" />,
-                              }[header.column.getIsSorted() as string] ?? (
-                                header.column.getCanSort() ? (
-                                  <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                ) : null
-                              )}
-                            </div>
-                          )}
-                        </th>
-                      )
-                    })}
-                  </tr>
-                ))}
-              </thead>
-              <tbody className="divide-y divide-border">
-                {table.getRowModel().rows.map((row) => (
-                  <tr 
-                    key={row.id} 
-                    className="bg-card hover:bg-muted/30 transition-colors duration-200 cursor-pointer"
-                  >
-                    {row.getVisibleCells().map(cell => (
-                      <td key={cell.id} className="px-6 py-4">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
+                  {table.getHeaderGroups().map(headerGroup => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map(header => {
+                        return (
+                          <th key={header.id} scope="col" className="px-6 py-4 font-semibold">
+                            {header.isPlaceholder ? null : (
+                              <div
+                                {...{
+                                  className: header.column.getCanSort()
+                                    ? 'group cursor-pointer select-none flex items-center gap-1 hover:text-foreground transition-colors'
+                                    : 'flex items-center gap-1',
+                                  onClick: header.column.getToggleSortingHandler(),
+                                }}
+                              >
+                                {flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                                {{
+                                  asc: <ArrowUp className="w-3 h-3" />,
+                                  desc: <ArrowDown className="w-3 h-3" />,
+                                }[header.column.getIsSorted() as string] ?? (
+                                  header.column.getCanSort() ? (
+                                    <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  ) : null
+                                )}
+                              </div>
+                            )}
+                          </th>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {table.getRowModel().rows.map((row) => (
+                    <tr 
+                      key={row.id} 
+                      className="bg-card hover:bg-muted/30 transition-colors duration-200 cursor-pointer"
+                    >
+                      {row.getVisibleCells().map(cell => (
+                        <td key={cell.id} className="px-6 py-4">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                  
+                  {tickets.length === 0 && (
+                    <tr>
+                      <td colSpan={columns.length} className="px-6 py-12 text-center text-muted-foreground">
+                        <div className="flex flex-col items-center justify-center">
+                          <Tag className="w-12 h-12 mb-4 text-muted-foreground/50" />
+                          <p className="text-lg font-medium">No tickets found</p>
+                          <p className="text-sm">There are currently no tickets in the system.</p>
+                        </div>
                       </td>
-                    ))}
-                  </tr>
-                ))}
-                
-                {tickets.length === 0 && (
-                  <tr>
-                    <td colSpan={columns.length} className="px-6 py-12 text-center text-muted-foreground">
-                      <div className="flex flex-col items-center justify-center">
-                        <Tag className="w-12 h-12 mb-4 text-muted-foreground/50" />
-                        <p className="text-lg font-medium">No tickets found</p>
-                        <p className="text-sm">There are currently no tickets in the system.</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {tickets.length > 0 && (
+              <div className="border-t border-border p-4 flex items-center justify-between bg-muted/10">
+                <div className="text-sm text-muted-foreground font-medium">
+                  Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount() === -1 ? '...' : table.getPageCount()}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.firstPage()}
+                    disabled={!table.getCanPreviousPage()}
+                    className="shadow-sm"
+                  >
+                    First
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                    className="shadow-sm"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
+                    className="shadow-sm"
+                  >
+                    Next
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.lastPage()}
+                    disabled={!table.getCanNextPage()}
+                    className="shadow-sm"
+                  >
+                    Last
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
