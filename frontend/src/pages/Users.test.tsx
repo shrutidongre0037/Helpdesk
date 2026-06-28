@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import axios from 'axios';
 import Users from './Users';
+import { Role } from '@helpdesk/core';
 import { useSession } from '../lib/auth';
 
 // Mock dependencies
@@ -57,7 +58,7 @@ describe('Users Component', () => {
 
   it('redirects to / if user is authenticated but not an ADMIN', async () => {
     vi.mocked(useSession).mockReturnValue({
-      data: { user: { role: 'AGENT' }, session: {} },
+      data: { user: { role: Role.AGENT }, session: {} },
       isPending: false,
       error: null,
       refetch: vi.fn(),
@@ -70,7 +71,7 @@ describe('Users Component', () => {
 
   it('renders loading state when auth or query is pending', () => {
     vi.mocked(useSession).mockReturnValue({
-      data: { user: { role: 'ADMIN' }, session: {} },
+      data: { user: { role: Role.ADMIN }, session: {} },
       isPending: true,
       error: null,
       refetch: vi.fn(),
@@ -93,7 +94,7 @@ describe('Users Component', () => {
 
   it('renders error message if API fails', async () => {
     vi.mocked(useSession).mockReturnValue({
-      data: { user: { role: 'ADMIN' }, session: {} },
+      data: { user: { role: Role.ADMIN }, session: {} },
       isPending: false,
       error: null,
       refetch: vi.fn(),
@@ -112,7 +113,7 @@ describe('Users Component', () => {
 
   it('renders users successfully', async () => {
     vi.mocked(useSession).mockReturnValue({
-      data: { user: { role: 'ADMIN' }, session: {} },
+      data: { user: { role: Role.ADMIN }, session: {} },
       isPending: false,
       error: null,
       refetch: vi.fn(),
@@ -124,14 +125,14 @@ describe('Users Component', () => {
           id: 'user123',
           name: 'Admin Test',
           email: 'admin@test.com',
-          role: 'ADMIN',
+          role: Role.ADMIN,
           createdAt: new Date().toISOString(),
         },
         {
           id: 'user456',
           name: 'Agent Test',
           email: 'agent@test.com',
-          role: 'AGENT',
+          role: Role.AGENT,
           createdAt: new Date().toISOString(),
         },
       ],
@@ -152,7 +153,7 @@ describe('Users Component', () => {
   it('opens and closes the create user dialog', async () => {
     const user = userEvent.setup();
     vi.mocked(useSession).mockReturnValue({
-      data: { user: { role: 'ADMIN' }, session: {} },
+      data: { user: { role: Role.ADMIN }, session: {} },
       isPending: false,
       error: null,
       refetch: vi.fn(),

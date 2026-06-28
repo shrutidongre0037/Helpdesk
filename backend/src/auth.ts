@@ -12,6 +12,17 @@ export const auth = betterAuth({
           message: "Registration is not open. Contact your administrator.",
         });
       }
+      
+      // Prevent sign-in for soft-deleted users
+      if (ctx.path === '/sign-in/email' && ctx.body && typeof ctx.body === 'object' && 'email' in ctx.body) {
+        const email = (ctx.body as any).email;
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (user?.deletedAt) {
+          throw new APIError("FORBIDDEN", {
+            message: "Account disabled. Contact your administrator.",
+          });
+        }
+      }
     }),
   },
   database: prismaAdapter(prisma, { provider: "postgresql" }),
@@ -29,7 +40,7 @@ export const auth = betterAuth({
     additionalFields: {
       role: {
         type: "string",
-        required: false,
+        required: true,
         defaultValue: "AGENT",
       },
     },

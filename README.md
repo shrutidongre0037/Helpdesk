@@ -115,6 +115,18 @@ The `@helpdesk/core` package is a shared workspace module used to enforce a sing
    const data = mySchema.parse(req.body);
    ```
 
+### Enums and Magic Strings
+Always avoid magic strings for shared constants (like user roles). Define them as enums in the `@helpdesk/core` package and import them throughout the frontend and backend.
+```typescript
+import { Role } from '@helpdesk/core';
+
+// Correct ✅
+if (user.role === Role.ADMIN) { ... }
+
+// Incorrect ❌
+if (user.role === 'ADMIN') { ... }
+```
+
 ## 8-Phase Implementation Roadmap
 1. **Project Setup**: Scaffolding, DB initialization, Prisma schema, Admin seed script. *(Completed)*
 2. **Authentication**: Better Auth backend integration, Login UI with Shadcn, session management, frontend route protection. *(Completed)*

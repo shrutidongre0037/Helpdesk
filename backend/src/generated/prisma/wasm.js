@@ -130,7 +130,8 @@ exports.Prisma.UserScalarFieldEnum = {
   image: 'image',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  role: 'role'
+  role: 'role',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.SessionScalarFieldEnum = {

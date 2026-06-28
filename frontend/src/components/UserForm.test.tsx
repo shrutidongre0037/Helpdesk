@@ -3,12 +3,13 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import axios from 'axios';
-import { CreateUserForm } from './CreateUserForm';
+import { UserForm } from './UserForm';
+import { Role } from '@helpdesk/core';
 
 vi.mock('axios');
 const mockedAxios = vi.mocked(axios, true);
 
-describe('CreateUserForm Component', () => {
+describe('UserForm Component', () => {
   let queryClient: QueryClient;
   const mockOnSuccess = vi.fn();
 
@@ -25,7 +26,7 @@ describe('CreateUserForm Component', () => {
   const renderComponent = () => {
     return render(
       <QueryClientProvider client={queryClient}>
-        <CreateUserForm onSuccess={mockOnSuccess} />
+        <UserForm onSuccess={mockOnSuccess} />
       </QueryClientProvider>
     );
   };
@@ -68,7 +69,7 @@ describe('CreateUserForm Component', () => {
     await waitFor(() => {
       expect(mockedAxios.post).toHaveBeenCalledWith(
         expect.stringContaining('/api/users'),
-        { name: 'Admin User', email: 'admin@example.com', password: 'Password123!' },
+        { name: 'Admin User', email: 'admin@example.com', password: 'Password123!', role: Role.AGENT },
         { withCredentials: true }
       );
     });

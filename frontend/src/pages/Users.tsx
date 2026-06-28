@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useSession } from '../lib/auth';
 import { Navigate } from 'react-router-dom';
+import { Role } from '@helpdesk/core';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import axios from 'axios';
-import { ShieldCheck, User as UserIcon, Calendar, Mail, Plus } from 'lucide-react';
-import { CreateUserForm } from '../components/CreateUserForm';
+import { ShieldCheck, User as UserIcon, Calendar, Mail, Plus, Pencil, Trash2 } from 'lucide-react';
+import { UserForm } from '../components/UserForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface User {
   id: string;
@@ -21,7 +24,22 @@ export default function Users() {
   const { data: session, isPending: authPending } = useSession();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
+  const openCreateModal = () => {
+    setEditingUser(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (user: User) => {
+    setEditingUser(user);
+    setIsModalOpen(true);
+  };
+
+  const openDeleteConfirm = (user: User) => {
+    setUserToDelete(user);
+  };
 
   const { data: users = [], isLoading: loading, error: queryError } = useQuery({
     queryKey: ['users'],
@@ -32,17 +50,32 @@ export default function Users() {
       });
       return response.data as User[];
     },
-    enabled: !!session && session.user.role === 'ADMIN',
+    enabled: !!session && session.user.role === Role.ADMIN,
   });
 
   const error = queryError ? (queryError as any).response?.data?.error || queryError.message || 'An error occurred' : null;
 
-  // Wait for auth to finish before checking role, otherwise we might redirect too early
-  if (!authPending && (!session || session.user.role !== 'ADMIN')) {
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      const response = await axios.delete(`${backendUrl}/api/users/${userId}`, { withCredentials: true });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setUserToDelete(null);
+    },
+  });
+
+  const handleDeleteConfirm = () => {
+    if (userToDelete) {
+      deleteUserMutation.mutate(userToDelete.id);
+    }
+  };
+
+  if (!authPending && (!session || session.user.role !== Role.ADMIN)) {
     return <Navigate to="/" replace />;
   }
-
-
 
   const showLoader = authPending || loading;
 
@@ -60,16 +93,19 @@ export default function Users() {
         </div>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-indigo-600 hover:bg-indigo-600/90 text-primary-foreground">
+            <Button onClick={openCreateModal} className="bg-indigo-600 hover:bg-indigo-600/90 text-primary-foreground">
               <Plus className="w-4 h-4 mr-2" />
               New User
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create User</DialogTitle>
+              <DialogTitle>{editingUser ? 'Edit User' : 'Create User'}</DialogTitle>
             </DialogHeader>
-            <CreateUserForm onSuccess={() => setIsModalOpen(false)} />
+            <UserForm 
+              onSuccess={() => setIsModalOpen(false)} 
+              initialData={editingUser ? { id: editingUser.id, name: editingUser.name, email: editingUser.email, role: editingUser.role as Role } : undefined}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -117,6 +153,7 @@ export default function Users() {
                   <th scope="col" className="px-6 py-4 font-semibold">Contact</th>
                   <th scope="col" className="px-6 py-4 font-semibold">Role</th>
                   <th scope="col" className="px-6 py-4 font-semibold">Joined</th>
+                  <th scope="col" className="px-6 py-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -143,15 +180,18 @@ export default function Users() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                        user.role === 'ADMIN' 
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' 
-                          : 'bg-slate-100 text-slate-800 border border-slate-200'
-                      }`}>
-                        {user.role === 'ADMIN' && <ShieldCheck className="w-3 h-3 mr-1" />}
-                        {user.role !== 'ADMIN' && <UserIcon className="w-3 h-3 mr-1" />}
-                        {user.role}
-                      </span>
+                      <Badge 
+                        variant={user.role === Role.ADMIN ? "default" : "secondary"}
+                        className={
+                          user.role === Role.ADMIN 
+                            ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-100/80 border-indigo-200" 
+                            : "bg-slate-100 text-slate-700 hover:bg-slate-100/80 border-slate-200"
+                        }
+                      >
+                        {user.role === Role.ADMIN && <ShieldCheck className="w-3 h-3 mr-1" />}
+                        {user.role !== Role.ADMIN && <UserIcon className="w-3 h-3 mr-1" />}
+                        {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
+                      </Badge>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-muted-foreground">
@@ -163,12 +203,36 @@ export default function Users() {
                         })}</span>
                       </div>
                     </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50"
+                          onClick={() => openEditModal(user)}
+                          aria-label="Edit user"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        {user.role !== Role.ADMIN && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50"
+                            onClick={() => openDeleteConfirm(user)}
+                            aria-label="Delete user"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
                 
                 {users.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
+                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
                       No users found.
                     </td>
                   </tr>
@@ -180,6 +244,27 @@ export default function Users() {
       </div>
 
 
+      <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the user "{userToDelete?.name}" from the active users list.
+              They will no longer be able to access the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={deleteUserMutation.isPending}
+            >
+              {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
