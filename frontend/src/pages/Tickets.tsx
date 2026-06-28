@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '../lib/auth';
 import { Navigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Ticket as TicketIcon, Calendar, Mail, User as UserIcon, Tag, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { Ticket as TicketIcon, Calendar, Mail, User as UserIcon, Tag, ArrowUp, ArrowDown, ArrowUpDown, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { TicketStatus } from '@helpdesk/core';
 import {
@@ -109,9 +117,19 @@ export default function Tickets() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'createdAt', desc: true },
   ]);
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const { data: tickets = [], isLoading: loading, error: queryError } = useQuery({
-    queryKey: ['tickets', sorting],
+    queryKey: ['tickets', sorting, statusFilter, searchQuery],
     queryFn: async () => {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const sort = sorting.length > 0 ? sorting[0].id : 'createdAt';
@@ -119,7 +137,7 @@ export default function Tickets() {
       
       const response = await axios.get(`${backendUrl}/api/tickets`, {
         withCredentials: true,
-        params: { sort, order },
+        params: { sort, order, status: statusFilter, search: searchQuery },
       });
       return response.data as Ticket[];
     },
@@ -156,6 +174,31 @@ export default function Tickets() {
           <p className="text-muted-foreground mt-2">
             View and manage support tickets.
           </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search tickets..."
+              className="w-[250px] pl-9"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Statuses</SelectItem>
+              <SelectItem value="NEW">New</SelectItem>
+              <SelectItem value="OPEN">Open</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="RESOLVED">Resolved</SelectItem>
+              <SelectItem value="CLOSED">Closed</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
