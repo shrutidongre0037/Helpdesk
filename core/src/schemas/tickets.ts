@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export type TicketStatus = 'NEW' | 'OPEN' | 'PENDING' | 'RESOLVED' | 'CLOSED';
+
 export const inboundEmailSchema = z.object({
   from: z.string().email("Invalid email address"),
   fromName: z.string().trim().min(1, "Sender name is required").optional(),

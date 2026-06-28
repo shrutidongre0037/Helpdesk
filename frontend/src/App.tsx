@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Users from './pages/Users';
+import Tickets from './pages/Tickets';
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/tickets" element={<Tickets />} />
           <Route path="/login" element={<Login />} />
           <Route path="/users" element={<Users />} />
         </Routes>

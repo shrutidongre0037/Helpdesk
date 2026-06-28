@@ -10,6 +10,7 @@ import { requireAuth } from './middleware/requireAuth';
 import { Role } from './generated/prisma';
 import usersRouter from './routes/users';
 import webhooksRouter from './routes/webhooks';
+import ticketsRouter from './routes/tickets';
 
 dotenv.config();
 
@@ -77,6 +78,7 @@ app.get('/api/protected', requireAuth, (req, res) => {
 
 app.use('/api/users', usersRouter);
 app.use('/api/webhooks', webhooksRouter);
+app.use('/api/tickets', ticketsRouter);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

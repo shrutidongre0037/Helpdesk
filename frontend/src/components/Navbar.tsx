@@ -29,10 +29,20 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600 dark:to-indigo-400">
+              <Link to="/" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600 dark:to-indigo-400 mr-8">
                 Helpdesk AI
               </Link>
             </div>
+            {session && (
+              <div className="hidden sm:flex sm:items-center sm:space-x-8">
+                <Link
+                  to="/tickets"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Tickets
+                </Link>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-4">
             {isPending ? (

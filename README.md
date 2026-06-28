@@ -115,16 +115,17 @@ The `@helpdesk/core` package is a shared workspace module used to enforce a sing
    const data = mySchema.parse(req.body);
    ```
 
-### Enums and Magic Strings
-Always avoid magic strings for shared constants (like user roles). Define them as enums in the `@helpdesk/core` package and import them throughout the frontend and backend.
+### Union Types vs Enums
+We prefer **Union Types** over TypeScript `enum`s for shared constants (like user roles or ticket statuses). Union types provide excellent type safety while keeping the compiled JavaScript clean, avoiding the overhead and potential edge cases of TypeScript enums. Define union types in the `@helpdesk/core` package and use string literals safely.
+
 ```typescript
-import { Role } from '@helpdesk/core';
+import type { TicketStatus } from '@helpdesk/core';
 
-// Correct ✅
-if (user.role === Role.ADMIN) { ... }
+// Correct ✅ - Enforced by union type
+const currentStatus: TicketStatus = 'NEW';
 
-// Incorrect ❌
-if (user.role === 'ADMIN') { ... }
+// Incorrect ❌ - Using an enum object
+const currentStatus = TicketStatus.NEW;
 ```
 
 ## 8-Phase Implementation Roadmap
