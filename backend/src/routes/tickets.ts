@@ -125,21 +125,37 @@ router.patch('/:id', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Invalid ticket ID' });
     }
 
-    const { assignedToId } = req.body;
+    const { assignedToId, status } = req.body;
+    const dataToUpdate: any = {};
 
-    if (assignedToId !== undefined && assignedToId !== null) {
-      const user = await prisma.user.findUnique({
-        where: { id: assignedToId },
-      });
+    if (assignedToId !== undefined) {
+      if (assignedToId !== null) {
+        const user = await prisma.user.findUnique({
+          where: { id: assignedToId },
+        });
 
-      if (!user || user.deletedAt !== null) {
-        return res.status(400).json({ error: 'Invalid or inactive user specified for assignment' });
+        if (!user || user.deletedAt !== null) {
+          return res.status(400).json({ error: 'Invalid or inactive user specified for assignment' });
+        }
       }
+      dataToUpdate.assignedToId = assignedToId;
+    }
+
+    if (status !== undefined) {
+      const validStatuses = ['NEW', 'OPEN', 'PENDING', 'RESOLVED', 'CLOSED'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: 'Invalid ticket status' });
+      }
+      dataToUpdate.status = status;
+    }
+
+    if (Object.keys(dataToUpdate).length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
     }
 
     const ticket = await prisma.ticket.update({
       where: { id: ticketId },
-      data: { assignedToId: assignedToId === null ? null : assignedToId },
+      data: dataToUpdate,
       include: {
         assignedTo: {
           select: {

@@ -150,19 +150,38 @@ describe('Tickets API', () => {
       
       const response = await request(app)
         .patch('/api/tickets/1')
-        .send({}); // Empty payload, assignedToId is undefined
+        .send({}); // Empty payload
+        
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('No fields to update');
+    });
+
+    it('should return 400 if an invalid status is provided', async () => {
+      const response = await request(app)
+        .patch('/api/tickets/1')
+        .send({ status: 'INVALID_STATUS' });
+        
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('Invalid ticket status');
+      expect(mockPrisma.ticket.update).not.toHaveBeenCalled();
+    });
+
+    it('should update the ticket status if a valid status is provided', async () => {
+      const updatedTicket = { id: 1, status: 'OPEN' };
+      mockPrisma.ticket.update.mockResolvedValueOnce(updatedTicket);
+      
+      const response = await request(app)
+        .patch('/api/tickets/1')
+        .send({ status: 'OPEN' });
         
       expect(response.status).toBe(200);
+      expect(response.body).toEqual(updatedTicket);
       
-      // Should skip user validation if assignedToId is undefined
-      expect(mockPrisma.user.findUnique).not.toHaveBeenCalled();
-      
-      // Check that it passes undefined down (Prisma will ignore it)
-      expect(mockPrisma.ticket.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: { assignedToId: undefined }
-        })
-      );
+      expect(mockPrisma.ticket.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { status: 'OPEN' },
+        include: { assignedTo: { select: { id: true, name: true } } }
+      });
     });
   });
 });
