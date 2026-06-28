@@ -1,32 +1,47 @@
-import { Router } from 'express';
-import { requireAuth } from '../middleware/requireAuth';
-import prisma from '../db';
+import { Router } from "express";
+import { requireAuth } from "../middleware/requireAuth";
+import prisma from "../db";
 
 const router = Router();
 
 // GET /api/tickets - fetch all tickets sorted by newest first (or custom sort)
-router.get('/', requireAuth, async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   try {
-    const { sort = 'createdAt', order = 'desc', status, search, page = '1', limit = '10' } = req.query;
+    const {
+      sort = "createdAt",
+      order = "desc",
+      status,
+      search,
+      page = "1",
+      limit = "10",
+    } = req.query;
 
-    const validSortFields = ['createdAt', 'subject', 'status', 'senderName', 'senderEmail'];
-    const sortBy = validSortFields.includes(sort as string) ? (sort as string) : 'createdAt';
-    const sortOrder = order === 'asc' ? 'asc' : 'desc';
+    const validSortFields = [
+      "createdAt",
+      "subject",
+      "status",
+      "senderName",
+      "senderEmail",
+    ];
+    const sortBy = validSortFields.includes(sort as string)
+      ? (sort as string)
+      : "createdAt";
+    const sortOrder = order === "asc" ? "asc" : "desc";
 
     const parsedPage = parseInt(page as string, 10) || 1;
     const parsedLimit = parseInt(limit as string, 10) || 10;
     const skip = (parsedPage - 1) * parsedLimit;
 
     const whereClause: any = {};
-    if (status && typeof status === 'string' && status !== 'ALL') {
+    if (status && typeof status === "string" && status !== "ALL") {
       whereClause.status = status;
     }
 
-    if (search && typeof search === 'string' && search.trim() !== '') {
+    if (search && typeof search === "string" && search.trim() !== "") {
       whereClause.OR = [
-        { subject: { contains: search, mode: 'insensitive' } },
-        { senderName: { contains: search, mode: 'insensitive' } },
-        { senderEmail: { contains: search, mode: 'insensitive' } },
+        { subject: { contains: search, mode: "insensitive" } },
+        { senderName: { contains: search, mode: "insensitive" } },
+        { senderEmail: { contains: search, mode: "insensitive" } },
       ];
     }
 
@@ -50,38 +65,38 @@ router.get('/', requireAuth, async (req, res) => {
             select: {
               id: true,
               name: true,
-            }
-          }
-        }
-      })
+            },
+          },
+        },
+      }),
     ]);
-    
+
     res.json({
       data: tickets,
       meta: {
         total,
         page: parsedPage,
         limit: parsedLimit,
-        totalPages: Math.ceil(total / parsedLimit)
-      }
+        totalPages: Math.ceil(total / parsedLimit),
+      },
     });
   } catch (error: any) {
-    console.error('Error fetching tickets:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching tickets:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // GET /api/tickets/:id - fetch a single ticket by ID
-router.get('/:id', requireAuth, async (req, res) => {
+router.get("/:id", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
-      return res.status(400).json({ error: 'Missing ticket ID' });
+      return res.status(400).json({ error: "Missing ticket ID" });
     }
-    const ticketId = parseInt(id, 10);
+    const ticketId = parseInt(id as string, 10);
 
     if (isNaN(ticketId)) {
-      return res.status(400).json({ error: 'Invalid ticket ID' });
+      return res.status(400).json({ error: "Invalid ticket ID" });
     }
 
     const ticket = await prisma.ticket.findUnique({
@@ -91,38 +106,54 @@ router.get('/:id', requireAuth, async (req, res) => {
           select: {
             id: true,
             name: true,
-          }
-        }
-      }
+          },
+        },
+        replies: {
+          orderBy: {
+            createdAt: "asc",
+          },
+          include: {
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!ticket) {
-      return res.status(404).json({ error: 'Ticket not found' });
+      return res.status(404).json({ error: "Ticket not found" });
     }
 
     res.json(ticket);
   } catch (error: any) {
-    console.error('Error fetching ticket:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching ticket:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // PATCH /api/tickets/:id - update a ticket (e.g. assign to an agent)
-router.patch('/:id', requireAuth, async (req, res) => {
+router.patch("/:id", requireAuth, async (req, res) => {
   try {
     // Only admins can assign tickets
-    if (req.user?.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Forbidden: Only admins can update tickets' });
+    if (req.user?.role !== "ADMIN") {
+      return res
+        .status(403)
+        .json({ error: "Forbidden: Only admins can update tickets" });
     }
 
     const { id } = req.params;
     if (!id) {
-      return res.status(400).json({ error: 'Missing ticket ID' });
+      return res.status(400).json({ error: "Missing ticket ID" });
     }
-    const ticketId = parseInt(id, 10);
+    const ticketId = parseInt(id as string, 10);
 
     if (isNaN(ticketId)) {
-      return res.status(400).json({ error: 'Invalid ticket ID' });
+      return res.status(400).json({ error: "Invalid ticket ID" });
     }
 
     const { assignedToId, status } = req.body;
@@ -135,22 +166,26 @@ router.patch('/:id', requireAuth, async (req, res) => {
         });
 
         if (!user || user.deletedAt !== null) {
-          return res.status(400).json({ error: 'Invalid or inactive user specified for assignment' });
+          return res
+            .status(400)
+            .json({
+              error: "Invalid or inactive user specified for assignment",
+            });
         }
       }
       dataToUpdate.assignedToId = assignedToId;
     }
 
     if (status !== undefined) {
-      const validStatuses = ['NEW', 'OPEN', 'PENDING', 'RESOLVED', 'CLOSED'];
+      const validStatuses = ["NEW", "OPEN", "PENDING", "RESOLVED", "CLOSED"];
       if (!validStatuses.includes(status)) {
-        return res.status(400).json({ error: 'Invalid ticket status' });
+        return res.status(400).json({ error: "Invalid ticket status" });
       }
       dataToUpdate.status = status;
     }
 
     if (Object.keys(dataToUpdate).length === 0) {
-      return res.status(400).json({ error: 'No fields to update' });
+      return res.status(400).json({ error: "No fields to update" });
     }
 
     const ticket = await prisma.ticket.update({
@@ -161,18 +196,71 @@ router.patch('/:id', requireAuth, async (req, res) => {
           select: {
             id: true,
             name: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     res.json(ticket);
   } catch (error: any) {
-    if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Ticket not found' });
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Ticket not found" });
     }
-    console.error('Error updating ticket:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error updating ticket:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/tickets/:id/replies - add a reply to a ticket
+router.post("/:id/replies", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: "Missing ticket ID" });
+    }
+    const ticketId = parseInt(id as string, 10);
+
+    if (isNaN(ticketId)) {
+      return res.status(400).json({ error: "Invalid ticket ID" });
+    }
+
+    const { body, sentType } = req.body;
+
+    if (!body || typeof body !== "string" || body.trim() === "") {
+      return res.status(400).json({ error: "Reply body is required" });
+    }
+
+    // Verify ticket exists
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    const reply = await prisma.ticketReply.create({
+      data: {
+        body,
+        ticketId,
+        authorId: req.user?.id,
+        sentType: sentType || "AGENT",
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    res.status(201).json(reply);
+  } catch (error: any) {
+    console.error("Error creating ticket reply:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

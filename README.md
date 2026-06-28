@@ -20,7 +20,7 @@
 - **Authentication**: Database-backed session authentication using Better Auth with HTTP-only cookies and cross-origin CORS support.
 - **Data Fetching**: The frontend uses `axios` for HTTP requests (configured with `withCredentials: true` for auth cookies) and `@tanstack/react-query` for query caching, state management, and loading states.
 - **Environment**: Docker containerization used for local dependencies (PostgreSQL dev + PostgreSQL test + Redis).
-- **UI Design System**: Shadcn UI combined with custom glassmorphism and modern styling for a premium aesthetic.
+- **UI Design System**: Shadcn UI combined with custom glassmorphism and modern styling for a premium aesthetic. Includes reusable custom components like `ErrorMessage`.
 - **Security**: Rate limiting enabled in production only (global + auth-specific limits via `express-rate-limit`).
 
 ## Authentication Details
@@ -40,6 +40,8 @@ The system utilizes **Better Auth** to provide a secure and modern authenticatio
 
 ## E2E Testing (Playwright)
 Playwright is configured in the standalone `e2e/` directory with a fully isolated test database.
+
+**E2E Testing Rule**: E2E tests should ONLY be written for functionality that absolutely cannot be tested via unit tests. This includes cross-service integrations (e.g., webhook -> backend DB -> frontend rendering pipeline) and full-stack session behaviors. If a feature can be tested via a frontend component test or a backend unit test, it must NOT be an E2E test.
 
 ### Writing Tests with the AI Agent
 

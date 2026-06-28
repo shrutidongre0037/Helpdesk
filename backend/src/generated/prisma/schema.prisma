@@ -27,19 +27,25 @@ enum TicketStatus {
   CLOSED
 }
 
+enum SentType {
+  AGENT
+  CUSTOMER
+}
+
 model User {
-  id              String    @id
+  id              String        @id
   name            String
   email           String
   emailVerified   Boolean
   image           String?
   createdAt       DateTime
   updatedAt       DateTime
-  role            Role      @default(AGENT)
+  role            Role          @default(AGENT)
   deletedAt       DateTime?
   sessions        Session[]
   accounts        Account[]
   assignedTickets Ticket[]
+  replies         TicketReply[]
 
   @@unique([email])
   @@map("user")
@@ -91,16 +97,31 @@ model Verification {
 }
 
 model Ticket {
-  id           Int          @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   subject      String
   description  String
   senderEmail  String
   senderName   String?
-  status       TicketStatus @default(NEW)
+  status       TicketStatus  @default(NEW)
   assignedToId String?
-  assignedTo   User?        @relation(fields: [assignedToId], references: [id])
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  assignedTo   User?         @relation(fields: [assignedToId], references: [id])
+  replies      TicketReply[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@map("ticket")
+}
+
+model TicketReply {
+  id        Int      @id @default(autoincrement())
+  body      String
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id])
+  sentType  SentType @default(AGENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ticket_reply")
 }

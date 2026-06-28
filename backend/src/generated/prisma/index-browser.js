@@ -182,6 +182,16 @@ exports.Prisma.TicketScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.TicketReplyScalarFieldEnum = {
+  id: 'id',
+  body: 'body',
+  ticketId: 'ticketId',
+  authorId: 'authorId',
+  sentType: 'sentType',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -209,12 +219,18 @@ exports.TicketStatus = exports.$Enums.TicketStatus = {
   CLOSED: 'CLOSED'
 };
 
+exports.SentType = exports.$Enums.SentType = {
+  AGENT: 'AGENT',
+  CUSTOMER: 'CUSTOMER'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
-  Ticket: 'Ticket'
+  Ticket: 'Ticket',
+  TicketReply: 'TicketReply'
 };
 
 /**

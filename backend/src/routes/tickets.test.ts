@@ -11,6 +11,9 @@ const mockPrisma = {
     findMany: mock(),
     count: mock(),
   },
+  ticketReply: {
+    create: mock(),
+  },
   user: {
     findUnique: mock(),
   },
@@ -45,6 +48,7 @@ describe('Tickets API', () => {
     // Reset mocks
     mockPrisma.ticket.findUnique.mockReset();
     mockPrisma.ticket.update.mockReset();
+    mockPrisma.ticketReply.create.mockReset();
     mockPrisma.user.findUnique.mockReset();
     
     // Default user to admin for assignment tests
@@ -181,6 +185,92 @@ describe('Tickets API', () => {
         where: { id: 1 },
         data: { status: 'OPEN' },
         include: { assignedTo: { select: { id: true, name: true } } }
+      });
+    });
+  });
+
+  describe('POST /api/tickets/:id/replies', () => {
+    it('should return 400 if ticket ID is invalid', async () => {
+      const response = await request(app)
+        .post('/api/tickets/abc/replies')
+        .send({ body: 'Hello' });
+        
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('Invalid ticket ID');
+    });
+
+    it('should return 400 if reply body is missing or empty', async () => {
+      const response = await request(app)
+        .post('/api/tickets/1/replies')
+        .send({ body: '   ' });
+        
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('Reply body is required');
+    });
+
+    it('should return 404 if ticket does not exist', async () => {
+      mockPrisma.ticket.findUnique.mockResolvedValueOnce(null);
+      
+      const response = await request(app)
+        .post('/api/tickets/1/replies')
+        .send({ body: 'Hello' });
+        
+      expect(response.status).toBe(404);
+      expect(response.body.error).toContain('Ticket not found');
+      expect(mockPrisma.ticket.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 }
+      });
+    });
+
+    it('should create a reply and return 201', async () => {
+      mockPrisma.ticket.findUnique.mockResolvedValueOnce({ id: 1 });
+      const newReply = { id: 10, body: 'Hello', ticketId: 1, sentType: 'AGENT', authorId: 'admin1' };
+      mockPrisma.ticketReply.create.mockResolvedValueOnce(newReply);
+      
+      const response = await request(app)
+        .post('/api/tickets/1/replies')
+        .send({ body: 'Hello' });
+        
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual(newReply);
+      expect(mockPrisma.ticketReply.create).toHaveBeenCalledWith({
+        data: {
+          body: 'Hello',
+          ticketId: 1,
+          authorId: 'admin1',
+          sentType: 'AGENT'
+        },
+        include: {
+          author: {
+            select: { id: true, name: true, email: true }
+          }
+        }
+      });
+    });
+
+    it('should create a customer reply if sentType is CUSTOMER', async () => {
+      mockPrisma.ticket.findUnique.mockResolvedValueOnce({ id: 1 });
+      const newReply = { id: 11, body: 'Thanks', ticketId: 1, sentType: 'CUSTOMER', authorId: 'admin1' };
+      mockPrisma.ticketReply.create.mockResolvedValueOnce(newReply);
+      
+      const response = await request(app)
+        .post('/api/tickets/1/replies')
+        .send({ body: 'Thanks', sentType: 'CUSTOMER' });
+        
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual(newReply);
+      expect(mockPrisma.ticketReply.create).toHaveBeenCalledWith({
+        data: {
+          body: 'Thanks',
+          ticketId: 1,
+          authorId: 'admin1',
+          sentType: 'CUSTOMER'
+        },
+        include: {
+          author: {
+            select: { id: true, name: true, email: true }
+          }
+        }
       });
     });
   });
