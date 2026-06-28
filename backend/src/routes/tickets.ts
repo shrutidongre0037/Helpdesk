@@ -4,12 +4,18 @@ import prisma from '../db';
 
 const router = Router();
 
-// GET /api/tickets - fetch all tickets sorted by newest first
+// GET /api/tickets - fetch all tickets sorted by newest first (or custom sort)
 router.get('/', requireAuth, async (req, res) => {
   try {
+    const { sort = 'createdAt', order = 'desc' } = req.query;
+
+    const validSortFields = ['createdAt', 'subject', 'status', 'senderName', 'senderEmail'];
+    const sortBy = validSortFields.includes(sort as string) ? (sort as string) : 'createdAt';
+    const sortOrder = order === 'asc' ? 'asc' : 'desc';
+
     const tickets = await prisma.ticket.findMany({
       orderBy: {
-        createdAt: 'desc',
+        [sortBy]: sortOrder,
       },
       select: {
         id: true,

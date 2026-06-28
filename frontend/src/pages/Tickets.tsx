@@ -1,11 +1,19 @@
+import { useState } from 'react';
 import { useSession } from '../lib/auth';
 import { Navigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Ticket as TicketIcon, Calendar, Mail, User as UserIcon, Tag } from 'lucide-react';
+import { Ticket as TicketIcon, Calendar, Mail, User as UserIcon, Tag, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { TicketStatus } from '@helpdesk/core';
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import type { SortingState } from '@tanstack/react-table';
 
 interface Ticket {
   id: number;
@@ -17,19 +25,116 @@ interface Ticket {
   assignedTo: { id: string; name: string } | null;
 }
 
+const getStatusBadge = (status: TicketStatus) => {
+  switch (status) {
+    case 'NEW':
+      return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100/80 border-blue-200">New</Badge>;
+    case 'OPEN':
+      return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100/80 border-yellow-200">Open</Badge>;
+    case 'PENDING':
+      return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100/80 border-orange-200">Pending</Badge>;
+    case 'RESOLVED':
+      return <Badge className="bg-green-100 text-green-700 hover:bg-green-100/80 border-green-200">Resolved</Badge>;
+    case 'CLOSED':
+      return <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100/80 border-gray-200">Closed</Badge>;
+    default:
+      return <Badge variant="secondary">{status}</Badge>;
+  }
+};
+
+const columnHelper = createColumnHelper<Ticket>();
+
+const columns = [
+  columnHelper.accessor('subject', {
+    header: 'Subject',
+    cell: (info) => (
+      <div className="flex flex-col">
+        <span className="font-medium text-foreground text-base">{info.getValue()}</span>
+        <span className="text-xs text-muted-foreground mt-1">#TCK-{info.row.original.id}</span>
+      </div>
+    ),
+  }),
+  columnHelper.accessor('senderEmail', {
+    id: 'senderEmail', // Used for sorting
+    header: 'Requester',
+    cell: (info) => (
+      <div className="flex flex-col gap-1">
+        {info.row.original.senderName && (
+          <span className="font-medium text-foreground text-sm">{info.row.original.senderName}</span>
+        )}
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Mail className="w-3 h-3" />
+          <span>{info.getValue()}</span>
+        </div>
+      </div>
+    ),
+  }),
+  columnHelper.accessor('status', {
+    header: 'Status',
+    cell: (info) => getStatusBadge(info.getValue()),
+  }),
+  columnHelper.accessor('assignedTo', {
+    id: 'assignedTo', // not sortable currently on backend without join logic
+    header: 'Assigned To',
+    enableSorting: false,
+    cell: (info) => {
+      const assignedTo = info.getValue();
+      return assignedTo ? (
+        <div className="flex items-center gap-2">
+          <UserIcon className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm">{assignedTo.name}</span>
+        </div>
+      ) : (
+        <span className="text-muted-foreground italic text-sm">Unassigned</span>
+      );
+    },
+  }),
+  columnHelper.accessor('createdAt', {
+    header: 'Created',
+    cell: (info) => (
+      <div className="flex items-center gap-2 text-muted-foreground text-sm">
+        <Calendar className="w-4 h-4" />
+        <span>{new Date(info.getValue()).toLocaleDateString(undefined, { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        })}</span>
+      </div>
+    ),
+  }),
+];
+
 export default function Tickets() {
   const { data: session, isPending: authPending } = useSession();
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'createdAt', desc: true },
+  ]);
 
   const { data: tickets = [], isLoading: loading, error: queryError } = useQuery({
-    queryKey: ['tickets'],
+    queryKey: ['tickets', sorting],
     queryFn: async () => {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      const sort = sorting.length > 0 ? sorting[0].id : 'createdAt';
+      const order = sorting.length > 0 && sorting[0].desc ? 'desc' : 'asc';
+      
       const response = await axios.get(`${backendUrl}/api/tickets`, {
         withCredentials: true,
+        params: { sort, order },
       });
       return response.data as Ticket[];
     },
     enabled: !!session,
+  });
+
+  const table = useReactTable({
+    data: tickets,
+    columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    manualSorting: true,
   });
 
   const error = queryError ? (queryError as any).response?.data?.error || queryError.message || 'An error occurred' : null;
@@ -39,23 +144,6 @@ export default function Tickets() {
   }
 
   const showLoader = authPending || loading;
-
-  const getStatusBadge = (status: TicketStatus) => {
-    switch (status) {
-      case 'NEW':
-        return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100/80 border-blue-200">New</Badge>;
-      case 'OPEN':
-        return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100/80 border-yellow-200">Open</Badge>;
-      case 'PENDING':
-        return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100/80 border-orange-200">Pending</Badge>;
-      case 'RESOLVED':
-        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100/80 border-green-200">Resolved</Badge>;
-      case 'CLOSED':
-        return <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100/80 border-gray-200">Closed</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-in fade-in duration-500">
@@ -109,66 +197,57 @@ export default function Tickets() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
-                <tr>
-                  <th scope="col" className="px-6 py-4 font-semibold">Subject</th>
-                  <th scope="col" className="px-6 py-4 font-semibold">Requester</th>
-                  <th scope="col" className="px-6 py-4 font-semibold">Status</th>
-                  <th scope="col" className="px-6 py-4 font-semibold">Assigned To</th>
-                  <th scope="col" className="px-6 py-4 font-semibold">Created</th>
-                </tr>
+                {table.getHeaderGroups().map(headerGroup => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map(header => {
+                      return (
+                        <th key={header.id} scope="col" className="px-6 py-4 font-semibold">
+                          {header.isPlaceholder ? null : (
+                            <div
+                              {...{
+                                className: header.column.getCanSort()
+                                  ? 'group cursor-pointer select-none flex items-center gap-1 hover:text-foreground transition-colors'
+                                  : 'flex items-center gap-1',
+                                onClick: header.column.getToggleSortingHandler(),
+                              }}
+                            >
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                              {{
+                                asc: <ArrowUp className="w-3 h-3" />,
+                                desc: <ArrowDown className="w-3 h-3" />,
+                              }[header.column.getIsSorted() as string] ?? (
+                                header.column.getCanSort() ? (
+                                  <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                ) : null
+                              )}
+                            </div>
+                          )}
+                        </th>
+                      )
+                    })}
+                  </tr>
+                ))}
               </thead>
               <tbody className="divide-y divide-border">
-                {tickets.map((ticket) => (
+                {table.getRowModel().rows.map((row) => (
                   <tr 
-                    key={ticket.id} 
+                    key={row.id} 
                     className="bg-card hover:bg-muted/30 transition-colors duration-200 cursor-pointer"
                   >
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-foreground text-base">{ticket.subject}</span>
-                        <span className="text-xs text-muted-foreground mt-1">#TCK-{ticket.id}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1">
-                        {ticket.senderName && (
-                          <span className="font-medium text-foreground text-sm">{ticket.senderName}</span>
-                        )}
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Mail className="w-3 h-3" />
-                          <span>{ticket.senderEmail}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {getStatusBadge(ticket.status)}
-                    </td>
-                    <td className="px-6 py-4">
-                      {ticket.assignedTo ? (
-                        <div className="flex items-center gap-2">
-                          <UserIcon className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm">{ticket.assignedTo.name}</span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground italic text-sm">Unassigned</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                        <Calendar className="w-4 h-4" />
-                        <span>{new Date(ticket.createdAt).toLocaleDateString(undefined, { 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}</span>
-                      </div>
-                    </td>
+                    {row.getVisibleCells().map(cell => (
+                      <td key={cell.id} className="px-6 py-4">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
                   </tr>
                 ))}
                 
                 {tickets.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                    <td colSpan={columns.length} className="px-6 py-12 text-center text-muted-foreground">
                       <div className="flex flex-col items-center justify-center">
                         <Tag className="w-12 h-12 mb-4 text-muted-foreground/50" />
                         <p className="text-lg font-medium">No tickets found</p>
