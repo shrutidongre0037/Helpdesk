@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -146,5 +147,41 @@ describe('Users Component', () => {
     // Check emails
     expect(screen.getByText('admin@test.com')).toBeInTheDocument();
     expect(screen.getByText('agent@test.com')).toBeInTheDocument();
+  });
+
+  it('opens and closes the create user dialog', async () => {
+    const user = userEvent.setup();
+    vi.mocked(useSession).mockReturnValue({
+      data: { user: { role: 'ADMIN' }, session: {} },
+      isPending: false,
+      error: null,
+      refetch: vi.fn(),
+    } as any);
+
+    mockedAxios.get.mockResolvedValue({ data: [] });
+
+    renderComponent();
+
+    // Verify dialog is initially closed (Shadcn Dialog renders as role="dialog")
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    // Wait for the data to load and the button to be available
+    const newBtn = await screen.findByRole('button', { name: /new user/i });
+    
+    // Click "New User" button
+    await user.click(newBtn);
+
+    // Verify dialog opens
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Create User' })).toBeInTheDocument();
+
+    // Press Escape to close
+    await user.keyboard('{Escape}');
+    
+    // Verify dialog closes
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
   });
 });

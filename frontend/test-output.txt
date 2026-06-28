@@ -1,0 +1,35 @@
+$ vitest run
+
+ RUN  v4.1.9 /home/enjay/Documents/helpdesk/frontend
+
+ ❯ src/pages/Users.test.tsx (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/pages/Users.test.tsx [ src/pages/Users.test.tsx ]
+Error: Failed to resolve import "@testing-library/user-event" from "src/pages/Users.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/enjay/Documents/helpdesk/frontend/src/pages/Users.test.tsx:2:0
+  2  |  vi.mock("axios");
+  3  |  const __vi_import_0__ = await import("@testing-library/react");
+  4  |  const __vi_import_1__ = await import("@testing-library/user-event");
+     |                                       ^
+  5  |  const __vi_import_2__ = await import("react-router-dom");
+  6  |  const __vi_import_3__ = await import("@tanstack/react-query");
+ ❯ TransformPluginContext._formatLog node_modules/vite/dist/node/chunks/node.js:30602:39
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/node.js:30599:14
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/node.js:27842:18
+ ❯ node_modules/vite/dist/node/chunks/node.js:27905:30
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/node.js:27873:4
+ ❯ EnvironmentPluginContainer.transform node_modules/vite/dist/node/chunks/node.js:30387:14
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/node.js:24646:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  14:30:28
+   Duration  1.48s (transform 42ms, setup 260ms, import 0ms, tests 0ms, environment 874ms)
+
+error: script "test:component" exited with code 1

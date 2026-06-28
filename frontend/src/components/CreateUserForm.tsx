@@ -56,6 +56,7 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
           {...register('name')}
           autoComplete="off"
           placeholder="John Doe"
+          className={errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}
         />
         {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
       </div>
@@ -66,6 +67,7 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
           {...register('email')}
           autoComplete="new-email"
           placeholder="john@example.com"
+          className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
         />
         {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
       </div>
@@ -76,6 +78,7 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
           {...register('password')}
           autoComplete="new-password"
           placeholder="••••••••"
+          className={errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}
         />
         {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
       </div>
