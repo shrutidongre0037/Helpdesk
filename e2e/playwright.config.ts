@@ -14,6 +14,9 @@ import path from "path";
 const BACKEND_URL = "http://localhost:3001";
 const FRONTEND_URL = "http://localhost:5174";
 
+process.env.BACKEND_URL = BACKEND_URL;
+process.env.WEBHOOK_SECRET = "test-webhook-secret";
+
 // Resolve paths relative to this config file's location
 const backendDir = path.resolve(__dirname, "../backend");
 const frontendDir = path.resolve(__dirname, "../frontend");
@@ -68,6 +71,7 @@ export default defineConfig({
         BETTER_AUTH_SECRET: "test-only-secret-never-used-in-production-32chars",
         BETTER_AUTH_URL: BACKEND_URL,
         FRONTEND_URL: FRONTEND_URL,
+        WEBHOOK_SECRET: "test-webhook-secret",
       },
     },
     {

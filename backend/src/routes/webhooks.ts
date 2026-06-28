@@ -8,6 +8,18 @@ const router = Router();
 
 router.post('/email', async (req, res) => {
   try {
+    const providedSecret = req.headers['x-webhook-secret'];
+    const expectedSecret = process.env.WEBHOOK_SECRET;
+
+    if (!expectedSecret) {
+      console.warn('WEBHOOK_SECRET is not configured in the environment');
+    }
+
+    if (expectedSecret && providedSecret !== expectedSecret) {
+      res.status(401).json({ error: 'Unauthorized: Invalid webhook secret' });
+      return;
+    }
+
     const parseResult = inboundEmailSchema.safeParse(req.body);
 
     if (!parseResult.success) {
