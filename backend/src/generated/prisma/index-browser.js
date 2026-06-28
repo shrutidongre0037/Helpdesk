@@ -170,6 +170,18 @@ exports.Prisma.VerificationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.TicketScalarFieldEnum = {
+  id: 'id',
+  subject: 'subject',
+  description: 'description',
+  senderEmail: 'senderEmail',
+  senderName: 'senderName',
+  status: 'status',
+  assignedToId: 'assignedToId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -189,11 +201,20 @@ exports.Role = exports.$Enums.Role = {
   AGENT: 'AGENT'
 };
 
+exports.TicketStatus = exports.$Enums.TicketStatus = {
+  NEW: 'NEW',
+  OPEN: 'OPEN',
+  PENDING: 'PENDING',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Session: 'Session',
   Account: 'Account',
-  Verification: 'Verification'
+  Verification: 'Verification',
+  Ticket: 'Ticket'
 };
 
 /**
