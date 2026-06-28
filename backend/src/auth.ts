@@ -19,11 +19,11 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8, // stronger minimum
   },
-  // Rate limiting: disabled in test mode so the e2e suite doesn't hit the 10-req/60s cap
+  // Rate limiting: enabled only in production to avoid blocking dev/test workflows
   rateLimit: {
-    enabled: process.env.NODE_ENV !== 'test',
+    enabled: process.env.NODE_ENV === 'production',
     window: 60,  // seconds
-    max: 10,     // requests per window per IP
+    max: 100,    // generous limit
   },
   user: {
     additionalFields: {

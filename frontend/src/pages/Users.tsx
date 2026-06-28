@@ -29,19 +29,12 @@ export default function Users() {
 
   const error = queryError ? (queryError as any).response?.data?.error || queryError.message || 'An error occurred' : null;
 
-  if (authPending) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-6">
-        <Skeleton className="h-12 w-64 rounded-lg" />
-        <Skeleton className="h-[400px] w-full rounded-xl" />
-      </div>
-    );
-  }
-
-  // Role is properly typed via createAuthClient<typeof auth> in lib/auth.ts
-  if (!session || session.user.role !== 'ADMIN') {
+  // Wait for auth to finish before checking role, otherwise we might redirect too early
+  if (!authPending && (!session || session.user.role !== 'ADMIN')) {
     return <Navigate to="/" replace />;
   }
+
+  const showLoader = authPending || loading;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-in fade-in duration-500">
@@ -58,9 +51,34 @@ export default function Users() {
       </div>
 
       <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
-        {loading ? (
-          <div className="p-8 flex justify-center items-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        {showLoader ? (
+          <div className="p-0">
+            <div className="border-b border-border bg-muted/50 p-4 flex gap-4">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="p-4 flex items-center gap-6 border-b border-border last:border-0">
+                <div className="flex items-center gap-3 w-1/4">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+                <div className="w-1/4">
+                  <Skeleton className="h-4 w-40" />
+                </div>
+                <div className="w-1/4">
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+                <div className="w-1/4">
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="p-8 text-center text-red-500">

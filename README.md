@@ -70,6 +70,25 @@ cd e2e && npm test
 cd e2e && npm run test:ui
 ```
 
+## Component Testing (Vitest + RTL)
+The frontend uses **Vitest** and **React Testing Library** for lightning-fast, jsdom-based component testing.
+
+### Writing Component Tests
+- Component test files should be placed alongside their respective components, ending in `.test.tsx` (e.g., `frontend/src/pages/Users.test.tsx`).
+- Tests should mock external dependencies like `axios` and `better-auth/react` (using `vi.mock`) to test UI states in isolation.
+- Wrap components requiring context in a `QueryClientProvider` and `MemoryRouter` as needed.
+
+### Executing Component Tests
+You can execute these tests directly from the root of the project:
+
+```bash
+# Run all component tests once
+npm run test:component
+
+# Run component tests in watch mode (ideal during development)
+cd frontend && bun run test:component:watch
+```
+
 ## How to Run Locally
 Ensure you have Docker running and Bun installed.
 
