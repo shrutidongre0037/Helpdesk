@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { useSession } from '../lib/auth';
 import { Navigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { ShieldCheck, User as UserIcon, Calendar, Mail } from 'lucide-react';
+import { ShieldCheck, User as UserIcon, Calendar, Mail, Plus } from 'lucide-react';
+import { CreateUserForm } from '../components/CreateUserForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface User {
   id: string;
@@ -15,6 +19,10 @@ interface User {
 
 export default function Users() {
   const { data: session, isPending: authPending } = useSession();
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+
   const { data: users = [], isLoading: loading, error: queryError } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
@@ -34,6 +42,8 @@ export default function Users() {
     return <Navigate to="/" replace />;
   }
 
+
+
   const showLoader = authPending || loading;
 
   return (
@@ -48,6 +58,20 @@ export default function Users() {
             Manage system users and their roles securely.
           </p>
         </div>
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-indigo-600 hover:bg-indigo-600/90 text-primary-foreground">
+              <Plus className="w-4 h-4 mr-2" />
+              New User
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create User</DialogTitle>
+            </DialogHeader>
+            <CreateUserForm onSuccess={() => setIsModalOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
@@ -154,6 +178,8 @@ export default function Users() {
           </div>
         )}
       </div>
+
+
     </div>
   );
 }

@@ -7,7 +7,7 @@
 - **Runtime & Package Manager**: Bun
 - **Frontend**: React (Vite) + TypeScript + Tailwind CSS (v4) + Shadcn UI (Radix) + React Router
 - **Data Fetching (Frontend)**: Axios + TanStack React Query
-- **Backend**: Express + TypeScript (Running on Bun)
+- **Backend**: Express (v5+) + TypeScript (Running on Bun). *Express 5 natively handles rejected promises, allowing for clean async route handlers without unnecessary try/catch blocks.*
 - **Database**: PostgreSQL (with `pgvector` for AI embeddings)
 - **ORM**: Prisma
 - **Auth**: Better Auth
@@ -96,12 +96,33 @@ Ensure you have Docker running and Bun installed.
 2. **Start Backend**: `cd backend && bun run dev` → `http://localhost:3000`
 3. **Start Frontend**: `cd frontend && bun run dev` → `http://localhost:5173`
 
+## Shared Core Package
+The `@helpdesk/core` package is a shared workspace module used to enforce a single source of truth for validation schemas across the frontend and backend.
+
+### How to define and use Zod schemas:
+1. **Define**: Create your Zod schema in `core/src/schemas/<your-schema>.ts`.
+2. **Export**: Export it from the file and ensure it is also exported from `core/src/index.ts`.
+3. **Reference (Frontend)**: 
+   ```typescript
+   import { mySchema } from '@helpdesk/core';
+   // Use with react-hook-form
+   const form = useForm({ resolver: zodResolver(mySchema) });
+   ```
+4. **Reference (Backend)**: 
+   ```typescript
+   import { mySchema } from '@helpdesk/core';
+   // Use for payload validation
+   const data = mySchema.parse(req.body);
+   ```
+
 ## 8-Phase Implementation Roadmap
 1. **Project Setup**: Scaffolding, DB initialization, Prisma schema, Admin seed script. *(Completed)*
 2. **Authentication**: Better Auth backend integration, Login UI with Shadcn, session management, frontend route protection. *(Completed)*
 3. **User Management**: Admin CRUD for agents, role-based access. *(In Progress)*
    - Implemented RBAC enforcing `ADMIN` requirements for user management views.
    - Created the `/users` dashboard page and admin-only navigation links.
+   - Migrated user creation form to use `react-hook-form` and `zod` for robust client-side validation.
+   - Utilized Prisma's generated `Role` enum across backend endpoints to ensure type-safe assignment (e.g., `Role.AGENT`).
 4. **Ticket CRUD**: Core ticket operations, list/detail pages with filtering.
 5. **AI Features**: Gemini API integration for classification, summaries, suggested replies, knowledge base.
 6. **Email Integration**: Inbound webhook (SendGrid/Mailgun) to create tickets, outbound replies, threading.
