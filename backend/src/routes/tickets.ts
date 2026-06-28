@@ -71,4 +71,93 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/tickets/:id - fetch a single ticket by ID
+router.get('/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: 'Missing ticket ID' });
+    }
+    const ticketId = parseInt(id, 10);
+
+    if (isNaN(ticketId)) {
+      return res.status(400).json({ error: 'Invalid ticket ID' });
+    }
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+          }
+        }
+      }
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    res.json(ticket);
+  } catch (error: any) {
+    console.error('Error fetching ticket:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PATCH /api/tickets/:id - update a ticket (e.g. assign to an agent)
+router.patch('/:id', requireAuth, async (req, res) => {
+  try {
+    // Only admins can assign tickets
+    if (req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden: Only admins can update tickets' });
+    }
+
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: 'Missing ticket ID' });
+    }
+    const ticketId = parseInt(id, 10);
+
+    if (isNaN(ticketId)) {
+      return res.status(400).json({ error: 'Invalid ticket ID' });
+    }
+
+    const { assignedToId } = req.body;
+
+    if (assignedToId !== undefined && assignedToId !== null) {
+      const user = await prisma.user.findUnique({
+        where: { id: assignedToId },
+      });
+
+      if (!user || user.deletedAt !== null) {
+        return res.status(400).json({ error: 'Invalid or inactive user specified for assignment' });
+      }
+    }
+
+    const ticket = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: { assignedToId: assignedToId === null ? null : assignedToId },
+      include: {
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+          }
+        }
+      }
+    });
+
+    res.json(ticket);
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+    console.error('Error updating ticket:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

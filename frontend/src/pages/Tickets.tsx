@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSession } from '../lib/auth';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,7 +58,9 @@ const columns = [
     header: 'Subject',
     cell: (info) => (
       <div className="flex flex-col">
-        <span className="font-medium text-foreground text-base">{info.getValue()}</span>
+        <Link to={`/tickets/${info.row.original.id}`} className="font-medium text-base hover:text-indigo-600">
+          {info.getValue()}
+        </Link>
         <span className="text-xs text-muted-foreground mt-1">#TCK-{info.row.original.id}</span>
       </div>
     ),

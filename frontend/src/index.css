@@ -127,4 +127,7 @@
   html {
     @apply font-sans;
     }
+  a {
+    @apply text-foreground hover:underline transition-colors;
+  }
 }
