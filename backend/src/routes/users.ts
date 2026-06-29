@@ -171,6 +171,12 @@ router.delete('/:id', requireAuth, async (req, res) => {
 
   const deletedEmail = `deleted_${Date.now()}_${targetUser.email}`;
 
+  // Unassign all tickets assigned to this user
+  await prisma.ticket.updateMany({
+    where: { assignedToId: id },
+    data: { assignedToId: null }
+  });
+
   // Soft delete the user and free up their email address
   await prisma.user.update({
     where: { id },
