@@ -115,7 +115,8 @@ model Ticket {
 
 model TicketReply {
   id            Int       @id @default(autoincrement())
-  body          String
+  body          String    @db.Text
+  bodyHtml      String?   @db.Text
   ticketId      Int
   ticket        Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   authorId      String?

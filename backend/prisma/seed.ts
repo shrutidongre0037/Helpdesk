@@ -1,4 +1,4 @@
-import { auth } from '../src/auth';
+import { hashPassword } from '@better-auth/utils/password';
 import prisma from '../src/db';
 import { randomUUID } from 'crypto';
 import { Role } from '../src/generated/prisma';
@@ -25,8 +25,7 @@ async function seed() {
             return;
         }
 
-        const ctx = await auth.$context;
-        const hash = await ctx.password.hash(password);
+        const hash = await hashPassword(password);
         const userId = randomUUID();
 
         const user = await prisma.user.create({
@@ -45,7 +44,7 @@ async function seed() {
             data: {
                 id: randomUUID(),
                 userId: userId,
-                accountId: email,
+                accountId: userId,
                 providerId: "credential",
                 password: hash,
                 createdAt: new Date(),
