@@ -133,13 +133,20 @@ const currentStatus = TicketStatus.NEW;
 ## 8-Phase Implementation Roadmap
 1. **Project Setup**: Scaffolding, DB initialization, Prisma schema, Admin seed script. *(Completed)*
 2. **Authentication**: Better Auth backend integration, Login UI with Shadcn, session management, frontend route protection. *(Completed)*
-3. **User Management**: Admin CRUD for agents, role-based access. *(In Progress)*
+3. **User Management**: Admin CRUD for agents, role-based access. *(Completed)*
    - Implemented RBAC enforcing `ADMIN` requirements for user management views.
    - Created the `/users` dashboard page and admin-only navigation links.
    - Migrated user creation form to use `react-hook-form` and `zod` for robust client-side validation.
    - Utilized Prisma's generated `Role` enum across backend endpoints to ensure type-safe assignment (e.g., `Role.AGENT`).
-4. **Ticket CRUD**: Core ticket operations, list/detail pages with filtering.
-5. **AI Features**: Gemini API integration for classification, summaries, suggested replies, knowledge base.
+   - Implemented automatic unassignment of tickets upon user deletion to maintain data integrity.
+4. **Ticket CRUD**: Core ticket operations, list/detail pages with filtering. *(Completed)*
+   - Implemented server-side pagination, search, and status filtering for robust performance.
+   - Integrated server-side sorting with TanStack Table for efficient data visualization.
+   - Created a two-column Ticket Detail UI for managing ticket status, assignments, and conversation history.
+   - Added robust reply functionality with complete conversation threading.
+5. **AI Features**: Gemini API integration for classification, summaries, suggested replies, knowledge base. *(In Progress)*
+   - Integrated Google Gemini AI to polish and improve agent replies for tone and clarity.
+   - Added AI-powered conversation summarization to quickly generate concise overviews of long ticket histories.
 6. **Email Integration**: Inbound webhook (SendGrid/Mailgun) to create tickets, outbound replies, threading.
 7. **Dashboard**: Stats overview, category breakdown, quick filters. *(Basic UI scaffolded)*
 8. **Polish & Deployment**: Validation, error handling, Docker prep, full E2E test coverage.

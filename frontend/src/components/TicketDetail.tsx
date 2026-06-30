@@ -1,6 +1,9 @@
-import { Calendar, Mail, Clock } from "lucide-react";
+import { useState } from "react";
+import { Calendar, Mail, Clock, Sparkles, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { TicketStatus } from "@helpdesk/core";
+import axios from "axios";
 
 export const getStatusBadge = (status: TicketStatus) => {
   switch (status) {
@@ -55,6 +58,26 @@ interface TicketDetailProps {
 }
 
 export function TicketDetail({ ticket }: TicketDetailProps) {
+  const [summary, setSummary] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+
+  const handleSummarize = async () => {
+    setIsSummarizing(true);
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+      const response = await axios.post(
+        `${backendUrl}/api/tickets/${ticket.id}/summarize`,
+        {},
+        { withCredentials: true }
+      );
+      setSummary(response.data.summary);
+    } catch (error) {
+      console.error("Failed to summarize ticket:", error);
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
   return (
     <>
       {/* Header Section */}
@@ -113,6 +136,37 @@ export function TicketDetail({ ticket }: TicketDetailProps) {
             <p className="text-muted-foreground italic">
               No description provided.
             </p>
+          )}
+        </div>
+        
+        <div className="mt-8 border-t border-border pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              AI Summary
+            </h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSummarize}
+              disabled={isSummarizing}
+              className="gap-2"
+            >
+              {isSummarizing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+              {summary ? "Regenerate Summary" : "Summarize Conversation"}
+            </Button>
+          </div>
+          
+          {summary && (
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 animate-in fade-in slide-in-from-top-2">
+              <p className="text-sm text-foreground whitespace-pre-wrap">
+                {summary}
+              </p>
+            </div>
           )}
         </div>
       </div>

@@ -279,7 +279,7 @@ router.post("/:id/replies", requireAuth, async (req, res) => {
 router.post("/:id/polish", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const ticketId = parseInt(id, 10);
+    const ticketId = parseInt(id as string, 10);
     
     // Fetch the ticket to get the customer's name
     const ticket = await prisma.ticket.findUnique({
@@ -308,6 +308,58 @@ router.post("/:id/polish", requireAuth, async (req, res) => {
     res.json({ polishedText: text });
   } catch (error: any) {
     console.error("Error polishing reply:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/tickets/:id/summarize - summarize ticket and conversation history
+router.post("/:id/summarize", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const ticketId = parseInt(id as string, 10);
+    
+    // Fetch the ticket and all replies
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        replies: {
+          orderBy: { createdAt: "asc" },
+          include: {
+            author: {
+              select: { name: true }
+            }
+          }
+        }
+      }
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    // Construct the prompt
+    let prompt = `Please summarize the following support ticket and its conversation history. Keep the summary concise but informative.\n\n`;
+    prompt += `Ticket Subject: ${ticket.subject}\n`;
+    prompt += `Ticket Description: ${ticket.description}\n\n`;
+    prompt += `Conversation History:\n`;
+
+    if (ticket.replies.length === 0) {
+      prompt += "(No replies yet)\n";
+    } else {
+      for (const reply of ticket.replies) {
+        const authorName = reply.author?.name || (reply.sentType === "CUSTOMER" ? ticket.senderName || "Customer" : "Agent");
+        prompt += `${authorName}: ${reply.body}\n\n`;
+      }
+    }
+
+    const { text } = await generateText({
+      model: google('gemini-2.5-flash'),
+      prompt,
+    });
+
+    res.json({ summary: text });
+  } catch (error: any) {
+    console.error("Error summarizing ticket:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

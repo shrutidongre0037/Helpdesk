@@ -24,6 +24,15 @@ mock.module('../db', () => ({
   default: mockPrisma
 }));
 
+const mockGenerateText = mock().mockResolvedValue({ text: 'Polished AI text' });
+mock.module('ai', () => ({
+  generateText: mockGenerateText
+}));
+
+mock.module('@ai-sdk/google', () => ({
+  createGoogleGenerativeAI: () => () => 'mock-model'
+}));
+
 let mockUser: any = { role: 'ADMIN', id: 'admin1' };
 
 mock.module('../auth', () => ({
@@ -272,6 +281,53 @@ describe('Tickets API', () => {
           }
         }
       });
+    });
+  });
+
+  describe('POST /api/tickets/:id/polish', () => {
+    it('should return 404 if ticket does not exist', async () => {
+      mockPrisma.ticket.findUnique.mockResolvedValueOnce(null);
+      
+      const response = await request(app)
+        .post('/api/tickets/1/polish')
+        .send({ body: 'Hello' });
+        
+      expect(response.status).toBe(404);
+      expect(response.body.error).toContain('Ticket not found');
+      expect(mockPrisma.ticket.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 }
+      });
+    });
+
+    it('should return 400 if body is missing or invalid', async () => {
+      mockPrisma.ticket.findUnique.mockResolvedValueOnce({ id: 1, senderName: 'John' });
+
+      const response = await request(app)
+        .post('/api/tickets/1/polish')
+        .send({ body: '   ' }); // Empty body fails schema validation
+        
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBeDefined();
+    });
+
+    it('should call generateText and return polished text if valid', async () => {
+      mockPrisma.ticket.findUnique.mockResolvedValueOnce({ id: 1, senderName: 'John Doe' });
+      
+      const response = await request(app)
+        .post('/api/tickets/1/polish')
+        .send({ body: 'This is a test reply' });
+        
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ polishedText: 'Polished AI text' });
+      
+      // Verify generateText was called
+      expect(mockGenerateText).toHaveBeenCalled();
+      
+      // Ensure the prompt contained the customer name 'John Doe' and agent name
+      const callArgs = mockGenerateText.mock.calls[0][0];
+      expect(callArgs.prompt).toContain('John Doe');
+      expect(callArgs.prompt).toContain(mockUser.name || "Support Agent");
+      expect(callArgs.prompt).toContain('This is a test reply');
     });
   });
 });
