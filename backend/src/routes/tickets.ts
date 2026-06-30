@@ -1,8 +1,17 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/requireAuth";
 import prisma from "../db";
+import { generateText } from "ai";
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createReplySchema, polishReplySchema } from "@helpdesk/core";
+import { z } from "zod";
+
 
 const router = Router();
+
+const google = createGoogleGenerativeAI({
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
+});
 
 // GET /api/tickets - fetch all tickets sorted by newest first (or custom sort)
 router.get("/", requireAuth, async (req, res) => {
@@ -224,11 +233,13 @@ router.post("/:id/replies", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ticket ID" });
     }
 
-    const { body, sentType } = req.body;
-
-    if (!body || typeof body !== "string" || body.trim() === "") {
-      return res.status(400).json({ error: "Reply body is required" });
+    const validationResult = createReplySchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({ error: validationResult.error.errors[0]?.message || "Invalid input" });
     }
+    
+    const { body } = validationResult.data;
+    const { sentType } = req.body;
 
     // Verify ticket exists
     const ticket = await prisma.ticket.findUnique({
@@ -260,6 +271,43 @@ router.post("/:id/replies", requireAuth, async (req, res) => {
     res.status(201).json(reply);
   } catch (error: any) {
     console.error("Error creating ticket reply:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/tickets/:id/polish - polish a reply using AI
+router.post("/:id/polish", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const ticketId = parseInt(id, 10);
+    
+    // Fetch the ticket to get the customer's name
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    const validationResult = polishReplySchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({ error: validationResult.error.errors[0]?.message || "Invalid input" });
+    }
+
+    const { body } = validationResult.data;
+
+    const agentName = req.user?.name || "Support Agent";
+    const customerName = ticket.senderName || "Customer";
+
+    const { text } = await generateText({
+      model: google('gemini-2.5-flash'),
+      prompt: `You are a support agent assistant for customer support team. Please improve and polish the following support agent reply to be more professional, empathetic, and clear. Do not add any new information, preserve the original meaning and keep the response concise and to the point. Just improve the phrasing if needed. Start the reply by greeting the customer by their name: "${customerName}". Finally, sign the polished reply using the agent's name "${agentName}" and include the link "https://enjayworld.com":\n\n${body}`,
+    });
+
+    res.json({ polishedText: text });
+  } catch (error: any) {
+    console.error("Error polishing reply:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

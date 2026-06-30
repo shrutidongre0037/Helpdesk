@@ -34,6 +34,31 @@ export function ReplyForm({ ticket }: ReplyFormProps) {
     },
   });
 
+  const polishMutation = useMutation({
+    mutationFn: async (body: string) => {
+      const backendUrl =
+        import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+      const response = await axios.post(
+        `${backendUrl}/api/tickets/${ticket.id}/polish`,
+        { body },
+        { withCredentials: true },
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      if (data.polishedText) {
+        setReplyBody(data.polishedText);
+      }
+    },
+    onError: (error: any) => {
+      console.error("Error polishing reply:", error);
+      alert(
+        error.response?.data?.error ||
+          "Failed to polish reply. You may have exceeded your AI provider quota."
+      );
+    },
+  });
+
   return (
     <div className="p-6 sm:p-8 border-t border-border bg-background/50 mt-auto">
       <h3 className="text-lg font-semibold mb-4">Add Reply</h3>
@@ -43,12 +68,21 @@ export function ReplyForm({ ticket }: ReplyFormProps) {
           placeholder="Type your reply here..."
           value={replyBody}
           onChange={(e) => setReplyBody(e.target.value)}
-          disabled={submitReplyMutation.isPending}
+          disabled={submitReplyMutation.isPending || polishMutation.isPending}
         />
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={() => polishMutation.mutate(replyBody)}
+            disabled={
+              polishMutation.isPending || submitReplyMutation.isPending || !replyBody.trim()
+            }
+          >
+            {polishMutation.isPending ? "Polishing..." : "✨ Polish"}
+          </Button>
           <Button
             onClick={() => submitReplyMutation.mutate(replyBody)}
-            disabled={submitReplyMutation.isPending || !replyBody.trim()}
+            disabled={submitReplyMutation.isPending || polishMutation.isPending || !replyBody.trim()}
             className="min-w-[120px]"
           >
             {submitReplyMutation.isPending ? "Sending..." : "Send Reply"}
