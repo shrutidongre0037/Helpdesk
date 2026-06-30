@@ -38,7 +38,7 @@ const statuses = [
 ];
 
 function getRandomElement<T>(arr: T[]): T {
-    return arr[Math.floor(Math.random() * arr.length)];
+    return arr[Math.floor(Math.random() * arr.length)] as T;
 }
 
 function getRandomDate(start: Date, end: Date) {
@@ -52,11 +52,14 @@ async function seedTickets() {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
 
+    const categories = ['TECHNICAL', 'GENERAL', 'REFUND', null];
+
     for (let i = 0; i < 100; i++) {
         const name = getRandomElement(names);
         const email = `${name.toLowerCase().replace(' ', '.')}@example.com`;
         const subject = getRandomElement(subjects);
         const status = getRandomElement(statuses);
+        const category = getRandomElement(categories);
         const createdAt = getRandomDate(thirtyDaysAgo, now);
         const updatedAt = getRandomDate(createdAt, now);
 
@@ -66,6 +69,7 @@ async function seedTickets() {
             senderEmail: email,
             senderName: name,
             status,
+            category,
             createdAt,
             updatedAt
         });

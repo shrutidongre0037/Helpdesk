@@ -20,6 +20,8 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,

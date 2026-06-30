@@ -5388,6 +5388,7 @@ export namespace Prisma {
     senderEmail: string | null
     senderName: string | null
     status: $Enums.TicketStatus | null
+    category: string | null
     assignedToId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -5400,6 +5401,7 @@ export namespace Prisma {
     senderEmail: string | null
     senderName: string | null
     status: $Enums.TicketStatus | null
+    category: string | null
     assignedToId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -5412,6 +5414,7 @@ export namespace Prisma {
     senderEmail: number
     senderName: number
     status: number
+    category: number
     assignedToId: number
     createdAt: number
     updatedAt: number
@@ -5434,6 +5437,7 @@ export namespace Prisma {
     senderEmail?: true
     senderName?: true
     status?: true
+    category?: true
     assignedToId?: true
     createdAt?: true
     updatedAt?: true
@@ -5446,6 +5450,7 @@ export namespace Prisma {
     senderEmail?: true
     senderName?: true
     status?: true
+    category?: true
     assignedToId?: true
     createdAt?: true
     updatedAt?: true
@@ -5458,6 +5463,7 @@ export namespace Prisma {
     senderEmail?: true
     senderName?: true
     status?: true
+    category?: true
     assignedToId?: true
     createdAt?: true
     updatedAt?: true
@@ -5557,6 +5563,7 @@ export namespace Prisma {
     senderEmail: string
     senderName: string | null
     status: $Enums.TicketStatus
+    category: string | null
     assignedToId: string | null
     createdAt: Date
     updatedAt: Date
@@ -5588,6 +5595,7 @@ export namespace Prisma {
     senderEmail?: boolean
     senderName?: boolean
     status?: boolean
+    category?: boolean
     assignedToId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -5603,6 +5611,7 @@ export namespace Prisma {
     senderEmail?: boolean
     senderName?: boolean
     status?: boolean
+    category?: boolean
     assignedToId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -5616,6 +5625,7 @@ export namespace Prisma {
     senderEmail?: boolean
     senderName?: boolean
     status?: boolean
+    category?: boolean
     assignedToId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -5643,6 +5653,7 @@ export namespace Prisma {
       senderEmail: string
       senderName: string | null
       status: $Enums.TicketStatus
+      category: string | null
       assignedToId: string | null
       createdAt: Date
       updatedAt: Date
@@ -6047,6 +6058,7 @@ export namespace Prisma {
     readonly senderEmail: FieldRef<"Ticket", 'String'>
     readonly senderName: FieldRef<"Ticket", 'String'>
     readonly status: FieldRef<"Ticket", 'TicketStatus'>
+    readonly category: FieldRef<"Ticket", 'String'>
     readonly assignedToId: FieldRef<"Ticket", 'String'>
     readonly createdAt: FieldRef<"Ticket", 'DateTime'>
     readonly updatedAt: FieldRef<"Ticket", 'DateTime'>
@@ -7526,6 +7538,7 @@ export namespace Prisma {
     senderEmail: 'senderEmail',
     senderName: 'senderName',
     status: 'status',
+    category: 'category',
     assignedToId: 'assignedToId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -8001,6 +8014,7 @@ export namespace Prisma {
     senderEmail?: StringFilter<"Ticket"> | string
     senderName?: StringNullableFilter<"Ticket"> | string | null
     status?: EnumTicketStatusFilter<"Ticket"> | $Enums.TicketStatus
+    category?: StringNullableFilter<"Ticket"> | string | null
     assignedToId?: StringNullableFilter<"Ticket"> | string | null
     createdAt?: DateTimeFilter<"Ticket"> | Date | string
     updatedAt?: DateTimeFilter<"Ticket"> | Date | string
@@ -8015,6 +8029,7 @@ export namespace Prisma {
     senderEmail?: SortOrder
     senderName?: SortOrderInput | SortOrder
     status?: SortOrder
+    category?: SortOrderInput | SortOrder
     assignedToId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -8032,6 +8047,7 @@ export namespace Prisma {
     senderEmail?: StringFilter<"Ticket"> | string
     senderName?: StringNullableFilter<"Ticket"> | string | null
     status?: EnumTicketStatusFilter<"Ticket"> | $Enums.TicketStatus
+    category?: StringNullableFilter<"Ticket"> | string | null
     assignedToId?: StringNullableFilter<"Ticket"> | string | null
     createdAt?: DateTimeFilter<"Ticket"> | Date | string
     updatedAt?: DateTimeFilter<"Ticket"> | Date | string
@@ -8046,6 +8062,7 @@ export namespace Prisma {
     senderEmail?: SortOrder
     senderName?: SortOrderInput | SortOrder
     status?: SortOrder
+    category?: SortOrderInput | SortOrder
     assignedToId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -8066,6 +8083,7 @@ export namespace Prisma {
     senderEmail?: StringWithAggregatesFilter<"Ticket"> | string
     senderName?: StringNullableWithAggregatesFilter<"Ticket"> | string | null
     status?: EnumTicketStatusWithAggregatesFilter<"Ticket"> | $Enums.TicketStatus
+    category?: StringNullableWithAggregatesFilter<"Ticket"> | string | null
     assignedToId?: StringNullableWithAggregatesFilter<"Ticket"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Ticket"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Ticket"> | Date | string
@@ -8502,6 +8520,7 @@ export namespace Prisma {
     senderEmail: string
     senderName?: string | null
     status?: $Enums.TicketStatus
+    category?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedTo?: UserCreateNestedOneWithoutAssignedTicketsInput
@@ -8515,6 +8534,7 @@ export namespace Prisma {
     senderEmail: string
     senderName?: string | null
     status?: $Enums.TicketStatus
+    category?: string | null
     assignedToId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -8527,6 +8547,7 @@ export namespace Prisma {
     senderEmail?: StringFieldUpdateOperationsInput | string
     senderName?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+    category?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedTo?: UserUpdateOneWithoutAssignedTicketsNestedInput
@@ -8540,6 +8561,7 @@ export namespace Prisma {
     senderEmail?: StringFieldUpdateOperationsInput | string
     senderName?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+    category?: NullableStringFieldUpdateOperationsInput | string | null
     assignedToId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -8553,6 +8575,7 @@ export namespace Prisma {
     senderEmail: string
     senderName?: string | null
     status?: $Enums.TicketStatus
+    category?: string | null
     assignedToId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -8564,6 +8587,7 @@ export namespace Prisma {
     senderEmail?: StringFieldUpdateOperationsInput | string
     senderName?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+    category?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -8575,6 +8599,7 @@ export namespace Prisma {
     senderEmail?: StringFieldUpdateOperationsInput | string
     senderName?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+    category?: NullableStringFieldUpdateOperationsInput | string | null
     assignedToId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9022,6 +9047,7 @@ export namespace Prisma {
     senderEmail?: SortOrder
     senderName?: SortOrder
     status?: SortOrder
+    category?: SortOrder
     assignedToId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -9038,6 +9064,7 @@ export namespace Prisma {
     senderEmail?: SortOrder
     senderName?: SortOrder
     status?: SortOrder
+    category?: SortOrder
     assignedToId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -9050,6 +9077,7 @@ export namespace Prisma {
     senderEmail?: SortOrder
     senderName?: SortOrder
     status?: SortOrder
+    category?: SortOrder
     assignedToId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -9775,6 +9803,7 @@ export namespace Prisma {
     senderEmail: string
     senderName?: string | null
     status?: $Enums.TicketStatus
+    category?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     replies?: TicketReplyCreateNestedManyWithoutTicketInput
@@ -9787,6 +9816,7 @@ export namespace Prisma {
     senderEmail: string
     senderName?: string | null
     status?: $Enums.TicketStatus
+    category?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     replies?: TicketReplyUncheckedCreateNestedManyWithoutTicketInput
@@ -9922,6 +9952,7 @@ export namespace Prisma {
     senderEmail?: StringFilter<"Ticket"> | string
     senderName?: StringNullableFilter<"Ticket"> | string | null
     status?: EnumTicketStatusFilter<"Ticket"> | $Enums.TicketStatus
+    category?: StringNullableFilter<"Ticket"> | string | null
     assignedToId?: StringNullableFilter<"Ticket"> | string | null
     createdAt?: DateTimeFilter<"Ticket"> | Date | string
     updatedAt?: DateTimeFilter<"Ticket"> | Date | string
@@ -10236,6 +10267,7 @@ export namespace Prisma {
     senderEmail: string
     senderName?: string | null
     status?: $Enums.TicketStatus
+    category?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedTo?: UserCreateNestedOneWithoutAssignedTicketsInput
@@ -10248,6 +10280,7 @@ export namespace Prisma {
     senderEmail: string
     senderName?: string | null
     status?: $Enums.TicketStatus
+    category?: string | null
     assignedToId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -10310,6 +10343,7 @@ export namespace Prisma {
     senderEmail?: StringFieldUpdateOperationsInput | string
     senderName?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+    category?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedTo?: UserUpdateOneWithoutAssignedTicketsNestedInput
@@ -10322,6 +10356,7 @@ export namespace Prisma {
     senderEmail?: StringFieldUpdateOperationsInput | string
     senderName?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+    category?: NullableStringFieldUpdateOperationsInput | string | null
     assignedToId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10400,6 +10435,7 @@ export namespace Prisma {
     senderEmail: string
     senderName?: string | null
     status?: $Enums.TicketStatus
+    category?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -10495,6 +10531,7 @@ export namespace Prisma {
     senderEmail?: StringFieldUpdateOperationsInput | string
     senderName?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+    category?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     replies?: TicketReplyUpdateManyWithoutTicketNestedInput
@@ -10507,6 +10544,7 @@ export namespace Prisma {
     senderEmail?: StringFieldUpdateOperationsInput | string
     senderName?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+    category?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     replies?: TicketReplyUncheckedUpdateManyWithoutTicketNestedInput
@@ -10519,6 +10557,7 @@ export namespace Prisma {
     senderEmail?: StringFieldUpdateOperationsInput | string
     senderName?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+    category?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

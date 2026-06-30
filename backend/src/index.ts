@@ -11,6 +11,7 @@ import { Role } from './generated/prisma';
 import usersRouter from './routes/users';
 import webhooksRouter from './routes/webhooks';
 import ticketsRouter from './routes/tickets';
+import { setupTicketQueue } from './queues/ticketQueue';
 
 dotenv.config();
 
@@ -80,6 +81,16 @@ app.use('/api/users', usersRouter);
 app.use('/api/webhooks', webhooksRouter);
 app.use('/api/tickets', ticketsRouter);
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+async function startServer() {
+  try {
+    await setupTicketQueue();
+  } catch (error) {
+    console.error("Failed to setup ticket queue:", error);
+  }
+
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+}
+
+startServer();

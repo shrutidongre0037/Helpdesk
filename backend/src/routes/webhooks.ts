@@ -2,6 +2,7 @@ import { Router } from "express";
 import prisma from "../db";
 import { TicketStatus } from "../generated/prisma";
 import { inboundEmailSchema } from "@helpdesk/core";
+import { boss } from "../queues/ticketQueue";
 
 const router = Router();
 
@@ -80,6 +81,8 @@ router.post("/email", async (req, res) => {
         status: TicketStatus.NEW,
       },
     });
+
+    await boss.send("classify-ticket", { ticketId: ticket.id });
 
     res.status(201).json({ message: "Ticket created", ticketId: ticket.id });
   } catch (error: any) {

@@ -20,6 +20,7 @@ router.get("/", requireAuth, async (req, res) => {
       sort = "createdAt",
       order = "desc",
       status,
+      category,
       search,
       page = "1",
       limit = "10",
@@ -31,6 +32,7 @@ router.get("/", requireAuth, async (req, res) => {
       "status",
       "senderName",
       "senderEmail",
+      "category",
     ];
     const sortBy = validSortFields.includes(sort as string)
       ? (sort as string)
@@ -44,6 +46,14 @@ router.get("/", requireAuth, async (req, res) => {
     const whereClause: any = {};
     if (status && typeof status === "string" && status !== "ALL") {
       whereClause.status = status;
+    }
+
+    if (category && typeof category === "string" && category !== "ALL") {
+      if (category === "UNCLASSIFIED") {
+        whereClause.category = null;
+      } else {
+        whereClause.category = category;
+      }
     }
 
     if (search && typeof search === "string" && search.trim() !== "") {
@@ -69,6 +79,7 @@ router.get("/", requireAuth, async (req, res) => {
           senderName: true,
           senderEmail: true,
           status: true,
+          category: true,
           createdAt: true,
           assignedTo: {
             select: {
@@ -165,7 +176,7 @@ router.patch("/:id", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ticket ID" });
     }
 
-    const { assignedToId, status } = req.body;
+    const { assignedToId, status, category } = req.body;
     const dataToUpdate: any = {};
 
     if (assignedToId !== undefined) {
@@ -191,6 +202,16 @@ router.patch("/:id", requireAuth, async (req, res) => {
         return res.status(400).json({ error: "Invalid ticket status" });
       }
       dataToUpdate.status = status;
+    }
+
+    if (category !== undefined) {
+      if (category !== null) {
+        const validCategories = ["TECHNICAL", "GENERAL", "REFUND"];
+        if (!validCategories.includes(category)) {
+          return res.status(400).json({ error: "Invalid category" });
+        }
+      }
+      dataToUpdate.category = category;
     }
 
     if (Object.keys(dataToUpdate).length === 0) {

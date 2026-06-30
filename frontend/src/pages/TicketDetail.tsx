@@ -4,7 +4,7 @@ import axios from "axios";
 import { useSession } from "../lib/auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import type { TicketStatus } from "@helpdesk/core";
+import type { TicketStatus, TicketCategory } from "@helpdesk/core";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { ReplyThread } from "@/components/ReplyThread";
 import { ReplyForm } from "@/components/ReplyForm";
@@ -29,6 +29,7 @@ interface Ticket {
   status: TicketStatus;
   createdAt: string;
   updatedAt: string;
+  category: TicketCategory | null;
   assignedTo: { id: string; name: string } | null;
   replies: Reply[];
 }

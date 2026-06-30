@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Calendar, Mail, Clock, Sparkles, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { TicketStatus } from "@helpdesk/core";
+import type { TicketStatus, TicketCategory } from "@helpdesk/core";
 import axios from "axios";
 
 export const getStatusBadge = (status: TicketStatus) => {
@@ -51,6 +51,7 @@ interface TicketForDetail {
   status: TicketStatus;
   createdAt: string;
   updatedAt: string;
+  category: TicketCategory | null;
 }
 
 interface TicketDetailProps {
@@ -89,6 +90,11 @@ export function TicketDetail({ ticket }: TicketDetailProps) {
                 #TCK-{ticket.id}
               </span>
               {getStatusBadge(ticket.status)}
+              {ticket.category && (
+                <Badge variant="outline" className="bg-muted text-muted-foreground font-normal">
+                  {ticket.category}
+                </Badge>
+              )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
               {ticket.subject}

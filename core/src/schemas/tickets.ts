@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 export type TicketStatus = 'NEW' | 'OPEN' | 'PENDING' | 'RESOLVED' | 'CLOSED';
+export type TicketCategory = 'TECHNICAL' | 'GENERAL' | 
+'REFUND';
 
 export const inboundEmailSchema = z.object({
   from: z.string().email("Invalid email address").max(255, "Email address is too long"),

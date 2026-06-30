@@ -177,6 +177,7 @@ exports.Prisma.TicketScalarFieldEnum = {
   senderEmail: 'senderEmail',
   senderName: 'senderName',
   status: 'status',
+  category: 'category',
   assignedToId: 'assignedToId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

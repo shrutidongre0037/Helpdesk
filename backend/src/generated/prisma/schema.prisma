@@ -103,6 +103,7 @@ model Ticket {
   senderEmail  String
   senderName   String?
   status       TicketStatus  @default(NEW)
+  category     String?
   assignedToId String?
   assignedTo   User?         @relation(fields: [assignedToId], references: [id])
   replies      TicketReply[]

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "../lib/auth";
-import { Activity, User as UserIcon } from "lucide-react";
+import { Activity, User as UserIcon, Tag } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -10,11 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { TicketStatus } from "@helpdesk/core";
+import type { TicketStatus, TicketCategory } from "@helpdesk/core";
 
 interface TicketForUpdate {
   id: number;
   status: TicketStatus;
+  category: TicketCategory | null;
   assignedTo: { id: string; name: string } | null;
 }
 
@@ -28,13 +29,15 @@ export function UpdateTicket({ ticket }: UpdateTicketProps) {
 
   const [selectedAgentId, setSelectedAgentId] = useState<string>("unassigned");
   const [selectedStatus, setSelectedStatus] = useState<TicketStatus>("NEW");
+  const [selectedCategory, setSelectedCategory] = useState<TicketCategory | "unassigned">("unassigned");
 
   useEffect(() => {
     if (ticket) {
       setSelectedAgentId(ticket.assignedTo?.id || "unassigned");
       setSelectedStatus(ticket.status);
+      setSelectedCategory(ticket.category || "unassigned");
     }
-  }, [ticket?.assignedTo?.id, ticket?.status]);
+  }, [ticket?.assignedTo?.id, ticket?.status, ticket?.category]);
 
   const { data: usersData } = useQuery<any[]>({
     queryKey: ["users"],
@@ -53,6 +56,7 @@ export function UpdateTicket({ ticket }: UpdateTicketProps) {
     mutationFn: async (data: {
       assignedToId?: string | null;
       status?: TicketStatus;
+      category?: TicketCategory | null;
     }) => {
       const backendUrl =
         import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
@@ -73,6 +77,7 @@ export function UpdateTicket({ ticket }: UpdateTicketProps) {
     onError: () => {
       setSelectedAgentId(ticket?.assignedTo?.id || "unassigned");
       setSelectedStatus(ticket?.status || "NEW");
+      setSelectedCategory(ticket?.category || "unassigned");
     },
   });
 
@@ -112,6 +117,38 @@ export function UpdateTicket({ ticket }: UpdateTicketProps) {
           ) : (
             <div className="font-medium px-3 py-2 bg-muted/50 rounded-md border border-border">
               {ticket.status}
+            </div>
+          )}
+        </div>
+
+        {/* Category Dropdown */}
+        <div>
+          <div className="flex items-center gap-2 text-muted-foreground mb-3">
+            <Tag className="w-4 h-4" />
+            <span className="text-sm font-medium">Category</span>
+          </div>
+          {session?.user?.role === "ADMIN" ? (
+            <Select
+              value={selectedCategory}
+              onValueChange={(val: TicketCategory | "unassigned") => {
+                setSelectedCategory(val);
+                updateTicketMutation.mutate({ category: val === "unassigned" ? null : val });
+              }}
+              disabled={updateTicketMutation.isPending}
+            >
+              <SelectTrigger className="w-full h-10 bg-background">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
+                <SelectItem value="TECHNICAL">Technical</SelectItem>
+                <SelectItem value="GENERAL">General</SelectItem>
+                <SelectItem value="REFUND">Refund</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="font-medium px-3 py-2 bg-muted/50 rounded-md border border-border">
+              {ticket.category ? ticket.category : "Unassigned"}
             </div>
           )}
         </div>

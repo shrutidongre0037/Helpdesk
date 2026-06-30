@@ -15,7 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Ticket as TicketIcon, Calendar, Mail, User as UserIcon, Tag, ArrowUp, ArrowDown, ArrowUpDown, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import type { TicketStatus } from '@helpdesk/core';
+import type { TicketStatus, TicketCategory } from '@helpdesk/core';
 import {
   createColumnHelper,
   flexRender,
@@ -31,6 +31,7 @@ interface Ticket {
   senderEmail: string;
   status: TicketStatus;
   createdAt: string;
+  category: string | null;
   assignedTo: { id: string; name: string } | null;
 }
 
@@ -84,6 +85,19 @@ const columns = [
     header: 'Status',
     cell: (info) => getStatusBadge(info.getValue()),
   }),
+  columnHelper.accessor('category', {
+    header: 'Category',
+    cell: (info) => {
+      const cat = info.getValue();
+      return cat ? (
+        <Badge variant="outline" className="bg-muted text-muted-foreground font-normal">
+          {cat}
+        </Badge>
+      ) : (
+        <span className="text-muted-foreground italic text-xs">Unclassified</span>
+      );
+    },
+  }),
   columnHelper.accessor('assignedTo', {
     id: 'assignedTo', // not sortable currently on backend without join logic
     header: 'Assigned To',
@@ -121,6 +135,7 @@ export default function Tickets() {
     { id: 'createdAt', desc: true },
   ]);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [pagination, setPagination] = useState<PaginationState>({
@@ -136,7 +151,7 @@ export default function Tickets() {
   }, [searchInput]);
 
   const { data: responseData, isLoading: loading, error: queryError } = useQuery({
-    queryKey: ['tickets', sorting, statusFilter, searchQuery, pagination],
+    queryKey: ['tickets', sorting, statusFilter, categoryFilter, searchQuery, pagination],
     queryFn: async () => {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const sort = sorting.length > 0 ? sorting[0].id : 'createdAt';
@@ -148,6 +163,7 @@ export default function Tickets() {
           sort, 
           order, 
           status: statusFilter, 
+          category: categoryFilter,
           search: searchQuery,
           page: pagination.pageIndex + 1,
           limit: pagination.pageSize
@@ -217,6 +233,18 @@ export default function Tickets() {
               <SelectItem value="PENDING">Pending</SelectItem>
               <SelectItem value="RESOLVED">Resolved</SelectItem>
               <SelectItem value="CLOSED">Closed</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Categories</SelectItem>
+              <SelectItem value="TECHNICAL">Technical</SelectItem>
+              <SelectItem value="GENERAL">General</SelectItem>
+              <SelectItem value="REFUND">Refund</SelectItem>
+              <SelectItem value="UNCLASSIFIED">Unclassified</SelectItem>
             </SelectContent>
           </Select>
         </div>
