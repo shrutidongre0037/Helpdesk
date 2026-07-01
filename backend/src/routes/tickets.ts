@@ -108,6 +108,22 @@ router.get("/", requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/tickets/metrics - fetch dashboard statistics
+router.get("/metrics", requireAuth, async (req, res) => {
+  try {
+    const result = await prisma.$queryRaw<any[]>`SELECT get_dashboard_metrics('ai@helpdesk.local') as metrics`;
+    
+    if (result && result.length > 0 && result[0].metrics) {
+      res.json(result[0].metrics);
+    } else {
+      res.status(500).json({ error: "Failed to compute dashboard metrics" });
+    }
+  } catch (error: any) {
+    console.error("Error fetching ticket metrics:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // GET /api/tickets/:id - fetch a single ticket by ID
 router.get("/:id", requireAuth, async (req, res) => {
   try {

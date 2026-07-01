@@ -22,39 +22,84 @@ async function seed() {
 
         if (existingUser) {
             console.log("Admin user already exists. Skipping seed.");
-            return;
+        } else {
+            const hash = await hashPassword(password);
+            const userId = randomUUID();
+
+            const user = await prisma.user.create({
+                data: {
+                    id: userId,
+                    name: "Admin",
+                    email: email,
+                    emailVerified: true,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    role: Role.ADMIN
+                }
+            });
+
+            await prisma.account.create({
+                data: {
+                    id: randomUUID(),
+                    userId: userId,
+                    accountId: userId,
+                    providerId: "credential",
+                    password: hash,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            });
+
+            console.log("Admin user created successfully!");
         }
 
-        const hash = await hashPassword(password);
-        const userId = randomUUID();
 
-        const user = await prisma.user.create({
-            data: {
-                id: userId,
-                name: "Admin",
-                email: email,
-                emailVerified: true,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                role: Role.ADMIN
-            }
-        });
-
-        await prisma.account.create({
-            data: {
-                id: randomUUID(),
-                userId: userId,
-                accountId: userId,
-                providerId: "credential",
-                password: hash,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            }
-        });
-
-        console.log("Admin user created successfully!");
     } catch (error) {
         console.error("Error seeding database:", error);
+    }
+
+    try {
+        const aiEmail = "ai@helpdesk.local";
+        console.log(`Seeding AI agent: ${aiEmail}...`);
+        
+        const existingAi = await prisma.user.findUnique({
+            where: { email: aiEmail }
+        });
+
+        if (existingAi) {
+            console.log("AI agent already exists. Skipping seed.");
+        } else {
+            const aiId = randomUUID();
+            // Optional: you can set a random password for AI agent if needed
+            const aiHash = await hashPassword(randomUUID());
+            
+            await prisma.user.create({
+                data: {
+                    id: aiId,
+                    name: "AI",
+                    email: aiEmail,
+                    emailVerified: true,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    role: Role.AGENT
+                }
+            });
+
+            await prisma.account.create({
+                data: {
+                    id: randomUUID(),
+                    userId: aiId,
+                    accountId: aiId,
+                    providerId: "credential",
+                    password: aiHash,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            });
+            console.log("AI agent created successfully!");
+        }
+    } catch (error) {
+        console.error("Error seeding AI agent:", error);
     } finally {
         await prisma.$disconnect();
     }

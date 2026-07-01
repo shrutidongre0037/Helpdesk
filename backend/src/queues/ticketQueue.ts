@@ -81,12 +81,17 @@ Response:`;
         if (resolutionResponse !== "UNRESOLVED") {
           console.log(`Ticket ${ticketId} auto-resolved.`);
           
+          const aiAgent = await prisma.user.findUnique({
+            where: { email: "ai@helpdesk.local" }
+          });
+          
           await prisma.$transaction([
             prisma.ticketReply.create({
               data: {
                 ticketId,
                 body: resolutionResponse,
                 sentType: "AGENT",
+                authorId: aiAgent ? aiAgent.id : null,
               },
             }),
             prisma.ticket.update({
@@ -120,7 +125,7 @@ Category:`;
           finalCategory = category as any;
         }
 
-        const updateData: any = { status: "OPEN" };
+        const updateData: any = { status: "OPEN", assignedToId: null };
         if (finalCategory) {
           updateData.category = finalCategory;
         }

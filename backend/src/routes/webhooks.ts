@@ -72,6 +72,10 @@ router.post("/email", async (req, res) => {
       return;
     }
 
+    const aiAgent = await prisma.user.findUnique({
+      where: { email: "ai@helpdesk.local" }
+    });
+
     const ticket = await prisma.ticket.create({
       data: {
         senderEmail: from,
@@ -79,6 +83,7 @@ router.post("/email", async (req, res) => {
         subject: subject,
         description: body,
         status: TicketStatus.NEW,
+        assignedToId: aiAgent ? aiAgent.id : null,
       },
     });
 
