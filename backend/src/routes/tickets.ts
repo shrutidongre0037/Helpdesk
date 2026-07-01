@@ -46,6 +46,8 @@ router.get("/", requireAuth, async (req, res) => {
     const whereClause: any = {};
     if (status && typeof status === "string" && status !== "ALL") {
       whereClause.status = status;
+    } else {
+      whereClause.status = { not: "PROCESSING" };
     }
 
     if (category && typeof category === "string" && category !== "ALL") {
@@ -197,7 +199,7 @@ router.patch("/:id", requireAuth, async (req, res) => {
     }
 
     if (status !== undefined) {
-      const validStatuses = ["NEW", "OPEN", "PENDING", "RESOLVED", "CLOSED"];
+      const validStatuses = ["NEW", "OPEN", "PROCESSING", "PENDING", "RESOLVED", "CLOSED"];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ error: "Invalid ticket status" });
       }

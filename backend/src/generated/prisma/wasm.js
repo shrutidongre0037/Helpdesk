@@ -216,6 +216,7 @@ exports.Role = exports.$Enums.Role = {
 exports.TicketStatus = exports.$Enums.TicketStatus = {
   NEW: 'NEW',
   OPEN: 'OPEN',
+  PROCESSING: 'PROCESSING',
   PENDING: 'PENDING',
   RESOLVED: 'RESOLVED',
   CLOSED: 'CLOSED'

@@ -59,6 +59,7 @@ export type Role = (typeof Role)[keyof typeof Role]
 export const TicketStatus: {
   NEW: 'NEW',
   OPEN: 'OPEN',
+  PROCESSING: 'PROCESSING',
   PENDING: 'PENDING',
   RESOLVED: 'RESOLVED',
   CLOSED: 'CLOSED'
