@@ -4,12 +4,14 @@ import { generateText } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import fs from "fs";
 import path from "path";
+import { google } from "googleapis";
+import { simpleParser } from "mailparser";
 
 const databaseUrl = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/helpdesk?schema=public";
 
 export const boss = new PgBoss(databaseUrl);
 
-const google = createGoogleGenerativeAI({
+const googleAI = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
 });
 
@@ -20,10 +22,91 @@ export async function setupTicketQueue() {
   console.log("pg-boss started successfully");
 
   await boss.createQueue("classify-ticket");
+  await boss.createQueue("fetch-gmail");
+
+  await boss.work("fetch-gmail", async () => {
+    const CLIENT_ID = process.env.GMAIL_CLIENT_ID;
+    const CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
+    const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
+
+    if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
+      return;
+    }
+
+    try {
+      const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET);
+      oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+
+      const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+      
+      const res = await gmail.users.messages.list({
+        userId: 'me',
+        q: 'is:unread to:shrutid.enjay@gmail.com newer_than:1d',
+        maxResults: 10,
+      });
+
+      const messages = res.data.messages || [];
+      if (messages.length === 0) return;
+
+      console.log(`Found ${messages.length} unread emails. Processing...`);
+
+      for (const message of messages) {
+        if (!message.id) continue;
+
+        const msgRes = await gmail.users.messages.get({
+          userId: 'me',
+          id: message.id,
+          format: 'raw',
+        });
+
+        if (msgRes.data.raw) {
+          const rawEmail = Buffer.from(msgRes.data.raw, 'base64').toString('utf-8');
+          const parsedEmail = await simpleParser(rawEmail);
+
+          const sender = parsedEmail.from?.value[0];
+          const senderEmail = sender?.address || "unknown@email.local";
+          const senderName = sender?.name || senderEmail;
+          const subject = parsedEmail.subject || "No Subject";
+          const body = parsedEmail.text || parsedEmail.html || "No Content";
+
+          console.log(`Processing email from ${senderEmail}: ${subject}`);
+
+          const ticket = await prisma.ticket.create({
+            data: {
+              subject,
+              description: body,
+              senderEmail,
+              senderName,
+              status: "NEW",
+            },
+          });
+
+          console.log(`Created ticket ${ticket.id} from email.`);
+
+          await boss.send("classify-ticket", { ticketId: ticket.id });
+
+          await gmail.users.messages.modify({
+            userId: 'me',
+            id: message.id,
+            requestBody: {
+              removeLabelIds: ['UNREAD'],
+            },
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching Gmail:", error);
+    }
+  });
+
+  await boss.schedule("fetch-gmail", "* * * * *");
 
   await boss.work("classify-ticket", async (jobs: any) => {
     const jobArray = Array.isArray(jobs) ? jobs : [jobs];
     for (const job of jobArray) {
+      // Sleep for 10 seconds before processing each ticket to respect Gemini Free Tier limits (15 RPM)
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      
       try {
         const { ticketId } = job.data as { ticketId: number };
         
@@ -72,7 +155,7 @@ Ticket Description: ${ticket.description}
 Response:`;
 
         const { text: resolutionText } = await generateText({
-          model: google("gemini-2.5-flash"),
+          model: googleAI("gemini-2.5-flash"),
           prompt: resolutionPrompt,
         });
 
@@ -114,7 +197,7 @@ Description: ${ticket.description}
 Category:`;
 
         const { text } = await generateText({
-          model: google("gemini-2.5-flash"),
+          model: googleAI("gemini-2.5-flash"),
           prompt,
         });
 

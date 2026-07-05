@@ -44,6 +44,10 @@ router.get("/", requireAuth, async (req, res) => {
     const skip = (parsedPage - 1) * parsedLimit;
 
     const whereClause: any = {};
+    if (req.user?.role !== "ADMIN") {
+      whereClause.assignedToId = req.user?.id;
+    }
+
     if (status && typeof status === "string" && status !== "ALL") {
       whereClause.status = status;
     } else {
@@ -111,15 +115,110 @@ router.get("/", requireAuth, async (req, res) => {
 // GET /api/tickets/metrics - fetch dashboard statistics
 router.get("/metrics", requireAuth, async (req, res) => {
   try {
-    const result = await prisma.$queryRaw<any[]>`SELECT get_dashboard_metrics('ai@helpdesk.local') as metrics`;
-    
-    if (result && result.length > 0 && result[0].metrics) {
-      res.json(result[0].metrics);
+    if (req.user?.role === "ADMIN") {
+      const result = await prisma.$queryRaw<any[]>`SELECT get_dashboard_metrics('ai@helpdesk.local') as metrics`;
+      
+      if (result && result.length > 0 && result[0].metrics) {
+        return res.json(result[0].metrics);
+      } else {
+        return res.status(500).json({ error: "Failed to compute dashboard metrics" });
+      }
     } else {
-      res.status(500).json({ error: "Failed to compute dashboard metrics" });
+      const userId = req.user?.id;
+      const totalTickets = await prisma.ticket.count({ where: { assignedToId: userId } });
+      const openTickets = await prisma.ticket.count({ where: { assignedToId: userId, status: 'OPEN' } });
+      
+      const resolvedTickets = await prisma.ticket.findMany({
+        where: { assignedToId: userId, status: { in: ['RESOLVED', 'CLOSED'] } },
+        select: { createdAt: true, updatedAt: true }
+      });
+      
+      let totalSeconds = 0;
+      for (const t of resolvedTickets) {
+        totalSeconds += (t.updatedAt.getTime() - t.createdAt.getTime()) / 1000;
+      }
+      const avgResolutionSeconds = resolvedTickets.length > 0 ? totalSeconds / resolvedTickets.length : 0;
+      const avgResolutionHours = (avgResolutionSeconds / 3600).toFixed(1);
+
+      const dailyTicketsRaw = await prisma.$queryRaw<any[]>`
+        SELECT 
+          to_char(d.date, 'YYYY-MM-DD') as date,
+          COALESCE(t.count, 0)::int as count
+        FROM (
+          SELECT generate_series(CURRENT_DATE - INTERVAL '29 days', CURRENT_DATE, '1 day'::interval)::date as date
+        ) d
+        LEFT JOIN (
+          SELECT DATE("createdAt") as date, count(*)::int as count
+          FROM "ticket"
+          WHERE "createdAt" >= CURRENT_DATE - INTERVAL '30 days' AND "assignedToId" = ${userId}
+          GROUP BY DATE("createdAt")
+        ) t ON d.date = t.date
+      `;
+
+      return res.json({
+        totalTickets,
+        openTickets,
+        aiResolved: 0,
+        percentAiResolved: 0,
+        avgResolutionHours: avgResolutionHours + 'h',
+        dailyTickets: dailyTicketsRaw
+      });
     }
   } catch (error: any) {
     console.error("Error fetching ticket metrics:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/tickets - Admin manually creates a ticket
+router.post("/", requireAuth, async (req, res) => {
+  try {
+    if (req.user?.role !== "ADMIN") {
+      return res.status(403).json({ error: "Forbidden: Only admins can create tickets manually" });
+    }
+
+    const { subject, description, status, category, assignedToId } = req.body;
+
+    if (!subject || !description || !status || !category) {
+      return res.status(400).json({ error: "Missing mandatory fields (subject, description, status, category)" });
+    }
+
+    const validStatuses = ["NEW", "OPEN", "PROCESSING", "PENDING", "RESOLVED", "CLOSED"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: "Invalid ticket status" });
+    }
+
+    const validCategories = ["TECHNICAL", "GENERAL", "REFUND", "UNCLASSIFIED"];
+    if (category !== "UNCLASSIFIED" && !validCategories.includes(category)) {
+      return res.status(400).json({ error: "Invalid category" });
+    }
+
+    const finalCategory = category === "UNCLASSIFIED" ? null : category;
+
+    let finalAssignedToId = null;
+    if (assignedToId && typeof assignedToId === "string" && assignedToId.trim() !== "") {
+      const user = await prisma.user.findUnique({ where: { id: assignedToId } });
+      if (!user || user.deletedAt !== null) {
+        return res.status(400).json({ error: "Invalid or inactive assigned user" });
+      }
+      finalAssignedToId = assignedToId;
+    }
+
+    const ticket = await prisma.ticket.create({
+      data: {
+        subject,
+        description,
+        status,
+        category: finalCategory,
+        assignedToId: finalAssignedToId,
+        senderEmail: req.user.email,
+        senderName: req.user.name,
+      }
+    });
+
+    res.status(201).json(ticket);
+  } catch (error: any) {
+    console.error("Error creating ticket manually:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

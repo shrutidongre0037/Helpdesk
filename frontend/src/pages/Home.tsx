@@ -73,35 +73,39 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-primary/10 bg-gradient-to-b from-white to-white/50 dark:from-zinc-950 dark:to-zinc-950/50 backdrop-blur-xl overflow-hidden relative rounded-2xl">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Ticket className="w-16 h-16 text-primary" />
-              </div>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Tickets</CardTitle>
-                <div className="p-2 bg-primary/10 rounded-full">
-                  <Ticket className="h-4 w-4 text-primary" />
+            <Link to="/tickets" className="block outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl">
+              <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-primary/10 bg-gradient-to-b from-white to-white/50 dark:from-zinc-950 dark:to-zinc-950/50 backdrop-blur-xl overflow-hidden relative rounded-2xl h-full">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Ticket className="w-16 h-16 text-primary" />
                 </div>
-              </CardHeader>
-              <CardContent className="z-10 relative">
-                <div className="text-3xl font-black text-foreground">{metrics?.totalTickets || 0}</div>
-              </CardContent>
-            </Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
+                  <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">Total Tickets</CardTitle>
+                  <div className="p-2 bg-primary/10 rounded-full">
+                    <Ticket className="h-4 w-4 text-primary" />
+                  </div>
+                </CardHeader>
+                <CardContent className="z-10 relative">
+                  <div className="text-3xl font-black text-foreground">{metrics?.totalTickets || 0}</div>
+                </CardContent>
+              </Card>
+            </Link>
             
-            <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-orange-500/10 bg-gradient-to-b from-white to-white/50 dark:from-zinc-950 dark:to-zinc-950/50 backdrop-blur-xl overflow-hidden relative rounded-2xl">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <FolderOpen className="w-16 h-16 text-orange-500" />
-              </div>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Open Tickets</CardTitle>
-                <div className="p-2 bg-orange-500/10 rounded-full">
-                  <FolderOpen className="h-4 w-4 text-orange-500" />
+            <Link to="/tickets?status=OPEN" className="block outline-none focus-visible:ring-2 focus-visible:ring-orange-500 rounded-2xl">
+              <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-orange-500/10 bg-gradient-to-b from-white to-white/50 dark:from-zinc-950 dark:to-zinc-950/50 backdrop-blur-xl overflow-hidden relative rounded-2xl h-full">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <FolderOpen className="w-16 h-16 text-orange-500" />
                 </div>
-              </CardHeader>
-              <CardContent className="z-10 relative">
-                <div className="text-3xl font-black text-foreground">{metrics?.openTickets || 0}</div>
-              </CardContent>
-            </Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Open Tickets</CardTitle>
+                  <div className="p-2 bg-orange-500/10 rounded-full">
+                    <FolderOpen className="h-4 w-4 text-orange-500" />
+                  </div>
+                </CardHeader>
+                <CardContent className="z-10 relative">
+                  <div className="text-3xl font-black text-foreground">{metrics?.openTickets || 0}</div>
+                </CardContent>
+              </Card>
+            </Link>
 
             <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-green-500/10 bg-gradient-to-b from-white to-white/50 dark:from-zinc-950 dark:to-zinc-950/50 backdrop-blur-xl overflow-hidden relative rounded-2xl">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">

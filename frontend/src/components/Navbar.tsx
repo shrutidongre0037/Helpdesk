@@ -5,6 +5,7 @@ import { Role } from '@helpdesk/core';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ThemeToggle } from './ThemeToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +30,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600 dark:to-indigo-400 mr-8">
+              <Link to="/" className="text-xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 mr-8">
                 Helpdesk AI
               </Link>
             </div>
@@ -45,6 +46,8 @@ export default function Navbar() {
             )}
           </div>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
+            
             {isPending ? (
               <div className="flex items-center space-x-4">
                 <Skeleton className="h-10 w-10 rounded-full" />
@@ -97,7 +100,7 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button asChild variant="default" className="font-medium bg-gradient-to-r from-primary to-indigo-600 hover:opacity-90 transition-opacity">
+              <Button asChild variant="default" className="font-medium bg-gradient-to-r from-primary to-primary/80 hover:opacity-90 transition-opacity">
                 <Link to="/login">
                   Log in
                 </Link>

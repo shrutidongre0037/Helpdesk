@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useSession } from '../lib/auth';
-import { Navigate, Link } from 'react-router-dom';
+import { useSearchParams, Navigate, Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CreateTicketModal } from '@/components/CreateTicketModal';
+import { Role } from '@helpdesk/core';
 import {
   Select,
   SelectContent,
@@ -131,10 +133,11 @@ const columns = [
 
 export default function Tickets() {
   const { data: session, isPending: authPending } = useSession();
+  const [searchParams] = useSearchParams();
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'createdAt', desc: true },
   ]);
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('status') || 'ALL');
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -211,7 +214,8 @@ export default function Tickets() {
             View and manage support tickets.
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          {session?.user.role === Role.ADMIN && <CreateTicketModal />}
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
