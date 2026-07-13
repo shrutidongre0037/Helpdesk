@@ -1,4 +1,4 @@
-import { hashPassword } from '@better-auth/utils/password';
+import bcrypt from 'bcrypt';
 import prisma from '../src/db';
 import { randomUUID } from 'crypto';
 import { Role } from '../src/generated/prisma';
@@ -23,7 +23,7 @@ async function seed() {
         if (existingUser) {
             console.log("Admin user already exists. Skipping seed.");
         } else {
-            const hash = await hashPassword(password);
+            const hash = bcrypt.hashSync(password, 10);
             const userId = randomUUID();
 
             const user = await prisma.user.create({
@@ -71,7 +71,7 @@ async function seed() {
         } else {
             const aiId = randomUUID();
             // Optional: you can set a random password for AI agent if needed
-            const aiHash = await hashPassword(randomUUID());
+            const aiHash = bcrypt.hashSync(randomUUID(), 10);
             
             await prisma.user.create({
                 data: {
