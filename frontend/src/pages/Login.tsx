@@ -30,6 +30,7 @@ export default function Login() {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormValues>({
+    // @ts-ignore - Zod version mismatch between dependencies
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
@@ -46,7 +47,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await signIn.email({
+      const { error } = await signIn.email({
         email: values.email,
         password: values.password,
       });

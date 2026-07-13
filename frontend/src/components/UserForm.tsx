@@ -39,7 +39,7 @@ export function UserForm({ onSuccess, initialData }: UserFormProps) {
 
   const saveUserMutation = useMutation({
     mutationFn: async (data: FormValues) => {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || (import.meta.env.PROD ? "" : "http://localhost:3000");
       
       if (isEditing) {
         const response = await axios.put(`${backendUrl}/api/users/${initialData.id}`, data, { withCredentials: true });

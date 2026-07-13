@@ -1,9 +1,9 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "../lib/auth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
+
 import type { TicketStatus, TicketCategory } from "@helpdesk/core";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { ReplyThread } from "@/components/ReplyThread";
@@ -36,7 +36,7 @@ interface Ticket {
 
 export default function TicketDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+
   const { data: session, isPending: authPending } = useSession();
 
   const {
@@ -47,7 +47,7 @@ export default function TicketDetailPage() {
     queryKey: ["ticket", id],
     queryFn: async () => {
       const backendUrl =
-        import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+        import.meta.env.VITE_BACKEND_URL || (import.meta.env.PROD ? "" : "http://localhost:3000");
       const response = await axios.get(`${backendUrl}/api/tickets/${id}`, {
         withCredentials: true,
       });

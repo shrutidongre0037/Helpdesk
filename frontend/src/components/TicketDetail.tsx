@@ -65,7 +65,7 @@ export function TicketDetail({ ticket }: TicketDetailProps) {
   const handleSummarize = async () => {
     setIsSummarizing(true);
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || (import.meta.env.PROD ? "" : "http://localhost:3000");
       const response = await axios.post(
         `${backendUrl}/api/tickets/${ticket.id}/summarize`,
         {},

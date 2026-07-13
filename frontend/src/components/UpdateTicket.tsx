@@ -43,7 +43,7 @@ export function UpdateTicket({ ticket }: UpdateTicketProps) {
     queryKey: ["users"],
     queryFn: async () => {
       const backendUrl =
-        import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+        import.meta.env.VITE_BACKEND_URL || (import.meta.env.PROD ? "" : "http://localhost:3000");
       const response = await axios.get(`${backendUrl}/api/users`, {
         withCredentials: true,
       });
@@ -59,7 +59,7 @@ export function UpdateTicket({ ticket }: UpdateTicketProps) {
       category?: TicketCategory | null;
     }) => {
       const backendUrl =
-        import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+        import.meta.env.VITE_BACKEND_URL || (import.meta.env.PROD ? "" : "http://localhost:3000");
       const response = await axios.patch(
         `${backendUrl}/api/tickets/${ticket.id}`,
         data,

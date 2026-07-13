@@ -1,3 +1,4 @@
+import path from 'path';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -80,6 +81,18 @@ app.get('/api/protected', requireAuth, (req, res) => {
 app.use('/api/users', usersRouter);
 app.use('/api/webhooks', webhooksRouter);
 app.use('/api/tickets', ticketsRouter);
+
+if (process.env.NODE_ENV === 'production') {
+  const frontendDist = path.join(process.cwd(), '../frontend/dist');
+  app.use(express.static(frontendDist));
+  app.use((req, res, next) => {
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(path.join(frontendDist, 'index.html'));
+    } else {
+      next();
+    }
+  });
+}
 
 async function startServer() {
   try {

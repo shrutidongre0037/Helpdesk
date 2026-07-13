@@ -13,6 +13,8 @@ describe("TicketDetail Component", () => {
     status: "OPEN" as TicketStatus,
     createdAt: new Date("2023-01-01T10:00:00Z").toISOString(),
     updatedAt: new Date("2023-01-02T10:00:00Z").toISOString(),
+    category: null,
+    assignedTo: null,
   };
 
   it("renders ticket basic information", () => {

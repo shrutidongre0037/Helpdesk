@@ -13,7 +13,7 @@ export default function Home() {
   const { data: metrics, isLoading: isMetricsLoading } = useQuery({
     queryKey: ['dashboard-metrics'],
     queryFn: async () => {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || (import.meta.env.PROD ? "" : "http://localhost:3000");
       const response = await axios.get(`${backendUrl}/api/tickets/metrics`, {
         withCredentials: true,
       });

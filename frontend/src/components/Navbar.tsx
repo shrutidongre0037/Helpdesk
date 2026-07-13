@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useSession, signOut } from '../lib/auth';
-import { LogOut, User, Settings, LayoutDashboard, Users } from 'lucide-react';
+import { LogOut, Settings, LayoutDashboard, Users } from 'lucide-react';
 import { Role } from '@helpdesk/core';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';

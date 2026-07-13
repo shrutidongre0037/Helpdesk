@@ -17,7 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Ticket as TicketIcon, Calendar, Mail, User as UserIcon, Tag, ArrowUp, ArrowDown, ArrowUpDown, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import type { TicketStatus, TicketCategory } from '@helpdesk/core';
+import type { TicketStatus } from '@helpdesk/core';
 import {
   createColumnHelper,
   flexRender,
@@ -156,7 +156,7 @@ export default function Tickets() {
   const { data: responseData, isLoading: loading, error: queryError } = useQuery({
     queryKey: ['tickets', sorting, statusFilter, categoryFilter, searchQuery, pagination],
     queryFn: async () => {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || (import.meta.env.PROD ? "" : "http://localhost:3000");
       const sort = sorting.length > 0 ? sorting[0].id : 'createdAt';
       const order = sorting.length > 0 && sorting[0].desc ? 'desc' : 'asc';
       
