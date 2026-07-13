@@ -17,6 +17,7 @@ import { setupTicketQueue } from './queues/ticketQueue';
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (required for Railway)
 const port = process.env.PORT || 3000;
 
 // Security headers

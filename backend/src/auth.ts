@@ -29,6 +29,16 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8, // stronger minimum
+    password: {
+      hash: async (password) => {
+        const bcrypt = await import("bcrypt");
+        return bcrypt.hash(password, 10);
+      },
+      verify: async ({ hash, password }) => {
+        const bcrypt = await import("bcrypt");
+        return bcrypt.compare(password, hash);
+      },
+    },
   },
   // Rate limiting: enabled only in production to avoid blocking dev/test workflows
   rateLimit: {
