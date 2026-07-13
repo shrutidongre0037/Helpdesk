@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "bun install && bun run --cwd frontend build && cd backend && bunx prisma generate"
+buildCommand = "sh -c 'bun install && bun run --cwd frontend build && cd backend && bunx prisma generate'"
 
 [deploy]
-startCommand = "cd backend && npx prisma migrate deploy && bun src/index.ts"
+startCommand = "sh -c 'cd backend && bunx prisma migrate deploy && bun src/index.ts'"
